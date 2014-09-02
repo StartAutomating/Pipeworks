@@ -1,0 +1,1 @@
+The MemberTopics section is a list of strings, and it describes topics only visible to a person after they have logged in.

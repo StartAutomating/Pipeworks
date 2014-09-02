@@ -1,0 +1,1 @@
+The PoolSize sets the number of RunspacePools set up to handle requests.  The default is 2.  The more runspace pools used, the more memory your site will consume, and the more users it can handle at the same time.

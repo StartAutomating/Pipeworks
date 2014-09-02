@@ -1,0 +1,1 @@
+If UseGraphael is provided in the Pipeworks manifest, Pipeworks will download [Raphael](http://raphaeljs.com/) for the creation of graphs within the page.

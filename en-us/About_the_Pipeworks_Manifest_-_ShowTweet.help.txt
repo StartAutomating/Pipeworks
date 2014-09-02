@@ -1,0 +1,1 @@
+If the the ShowTweet setting is provided in the Pipeworks Manifest, each page will show a Tweet this link on each page.  This setting can be overridden by using AntiSocial.

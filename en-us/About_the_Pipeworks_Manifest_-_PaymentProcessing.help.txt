@@ -1,0 +1,10 @@
+The Payment Processing section describes how the site will tie into various example platforms.  This is required for Cost to work on commands.
+
+
+This example will setup payments via PayPal for the email sales@start-automating.com
+
+    @{
+        PaymentProcessing = @{        
+            PaypalEmail = 'sales@start-automating.com'        
+        }        
+    }

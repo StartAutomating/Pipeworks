@@ -1,0 +1,1 @@
+The Ajax section of the Pipeworks manifest is boolean.  By default, it's set to false.  It instructs Pipeworks to use Ajax in forms.

@@ -1,0 +1,17 @@
+The LiveConnect section of the Pipeworks manifest describes Live Connect application data.  
+
+
+It contains the ClientID of the app, as well as a secure setting pointing to the Client Secret Key.
+
+
+Here is an example:
+
+
+    @{
+        LiveConnect = @{        
+            ClientId = '00000000440DBD88'
+            ClientSecretSetting = 'StartLearningPowerShellLiveSecret'
+        }
+    }
+
+

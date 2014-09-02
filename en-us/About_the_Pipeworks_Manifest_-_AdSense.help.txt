@@ -1,0 +1,22 @@
+The AdSense section of the Pipeworks manifest describes how AdSense ads will be added to a Pipeworks site.
+
+It is a hashtable, and contains:
+
+* An ID (your AdSense ID)
+* (Optionally) a BottomAdSlot, containing the ad slot you will display on the bottom of each page
+* (Optionally) a TopAdSlot, containing the ad slot you will display on the top of each page
+
+
+This is an example of a manifest containing only AdSense information:
+
+    @{
+        AdSense = @{
+            Id = '7086915862223923'
+            BottomAdSlot = '6352908833'
+        }
+    }
+
+
+See Also:
+
+* [/About_the_Pipeworks_Manifest_-_PubCenter](About The Pipeworks Manifest - PubCenter)

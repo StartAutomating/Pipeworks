@@ -1,0 +1,1 @@
+The JQueryUITheme describes the them used for JQueryUI.  This can be any theme on the default CDNs, or 'Custom', which will use a theme located in the 'custom' directory.  You can build the theme using [JQueryUI's ThemeRoller](http://jqueryUI.com/themeroller/).

@@ -1,0 +1,13 @@
+The facebook section adds facebook like links, and allows using Facebook as an authentication method.  It is a hashtable, and contains the AppId:
+
+
+Here is an example:
+
+    @{
+        Facebook = @{
+            AppId = '452858484777409'
+        }
+    }
+
+
+

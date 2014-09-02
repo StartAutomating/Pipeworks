@@ -1,0 +1,1 @@
+The TrustedWalkthrus list is a set of walkthrus that the site trusts enough to run.  These walkthrus should run quickly, not require user input, not require elevation, and yet be helpful in demonstrating functionality.  

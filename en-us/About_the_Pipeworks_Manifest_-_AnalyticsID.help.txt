@@ -1,0 +1,3 @@
+The Pipeworks setting AnalyticsID is a Google Analytics ID tracker.  If provided, this will be placed on every page in the module.
+
+

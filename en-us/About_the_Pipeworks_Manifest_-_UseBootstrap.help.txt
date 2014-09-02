@@ -1,0 +1,8 @@
+BootStrap (or UseBootStrap) instructs Pipeworks to use Twitter Bootstrap to build a site.  
+
+
+If the theme is not present, this will download a twitter bootstrap theme according using color scheme specified in the Style section of the Pipeworks manifest.  To refresh the them, delete bootstrap.js from the JS directory of the module and republish.
+
+
+Using Bootstrap enables many features within Pipeworks, and changes the default layout.  It enables a navbar that links to the topics and commands in the module.  It also changes the deault view to a set of HangingSpans, which will expand out when clicked.
+

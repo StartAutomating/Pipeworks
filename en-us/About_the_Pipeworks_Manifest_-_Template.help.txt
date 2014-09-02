@@ -1,0 +1,1 @@
+The template setting of the Pipeworks manifest describes a PowerShell web template (.pswt) to use for each page on the site.

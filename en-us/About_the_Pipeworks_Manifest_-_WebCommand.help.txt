@@ -1,0 +1,55 @@
+The WebCommand section of the Pipeworks manifest describes which commands will be usable as web services, and what options to use when running a command.
+
+It is a hashtable of hashtables, where the key of each hashtable is the name of the command and the value is a hashtable containing parameters for the command Invoke-WebCommand.
+
+
+This is the WebCommand section of the Pipework's manifest:
+
+    @{
+        WebCommand = @{
+            "Write-Link" = @{
+                HideParameter = "AmazonAccessKey", "AmazonSecretKey", "AmazonReturnUrl",  "AmazonInputUrl", 
+                    "AmazonIpnUrl", "UseOAth", "CollectShippingAddress", "AmazonAbandonUrl", "ToFacebookLogin", 
+                    "FacebookAppId", "ModuleServiceUrl", "FacebookLoginScope", "AmazonPaymentsAccountID", "GoogleCheckoutMerchantID", "SortedLinkTable"
+                PlainOutput = $true
+            
+            }        
+            "New-PipeworksManifest" = @{
+                ContentType = 'text/plain'
+            }
+        
+        
+            "ConvertFrom-Markdown" = @{                        
+                ParameterAlias = @{
+                    'm' = 'Markdown'
+                    'md' = 'Markdown'
+                }
+                FriendlyName = "Mess With Markdown"                        
+                HideParameter = 'Splat'
+            }
+               
+            "Write-ScriptHTML" = @{
+            
+                PlainOutput = $true
+                HideParameter = @('Palette', 'Start', 'End', 'Script')
+                ParameterOrder = 'Text'
+                ParameterAlias = @{
+                    't'= 'Text'
+                
+                }
+                FriendlyName = "Show Scripts as HTML"                        
+            }
+            "Write-ASPDotNetScriptPage" = @{
+            
+                ContentType = "text/plain"         
+                HideParameter = @('MasterPage', 'CodeFile',  'Inherit', 'RunScriptMethod', 'FileName')            
+                FriendlyName = "PowerShell in ASP.NET"                        
+            }
+
+            "Write-Crud" = @{
+                ContentType = "text/plain"         
+                PlainOutput = $true
+            }
+        
+        }
+    }

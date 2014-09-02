@@ -1,0 +1,12 @@
+The UserTable section of the Pipeworks manifest describes how users of a site will be stored in Azure Table Storage.  
+
+Here's an example (from the site [StartLearningPowerShell.com](http://start-learningpowershell.com/)
+
+    @{
+        UserTable = @{
+            Name = 'StartLearningPowerShellUsers'
+            Partition = 'Users'
+            StorageAccountSetting = 'AzureStorageAccountName'
+            StorageKeySetting = 'AzureStorageAccountKey'
+        }
+    }

@@ -1,0 +1,15 @@
+The CSS section of the pipeworks manifest describes CSS style pages to use with each page.  
+
+
+It is a hashtable, with the key describing the style page and the value containing the path to the page.
+
+
+Here's a quick example of the CSS section:
+
+    @{    
+        Css = @{
+            "PowerShellStyleSheet" = "/CSS/Gangamstyle.css"
+        }
+    }
+
+

@@ -1,0 +1,14 @@
+The PubCenter section of the Pipeworks manifest describes how PubCenter ads will be placed in a Win8 application.
+
+
+Like the AdSense section, it requires an ID, and a BottomAdSlot or TopAdSlot are supported:
+
+
+Here's an example:
+
+    @{
+        PubCenter = @{
+            ApplicationId = "1b9271e7-0be4-4ef1-84c3-9e8f921c1b4a"
+            BottomAdUnit = "10048228"
+        }
+    }

@@ -1,0 +1,2 @@
+The TopicTemplate is the PowerShell web template (.pswt) used to display each command in the site.  A .pswt allows you to customize the look and feel of a pipeworks page.  It directly replaces variable names within the page.   By default, this is set to Topic.pswt.
+

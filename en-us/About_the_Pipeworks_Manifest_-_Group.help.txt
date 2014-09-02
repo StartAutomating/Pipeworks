@@ -1,0 +1,20 @@
+The Group describes how commands and topics will be displayed on the front page and in menus throughout the site.
+
+
+It is a list of hashtables, displayed in order.  The key of each item in the hashtable will the name of the group.  The value will be a list of commands or topics within the group.
+
+
+For example, here's the Group section for Pipeworks:
+
+
+    @{
+        Group = @{
+            "Getting Started" = "About PowerShell Pipeworks", "Pipeworks Quickstart", "The Pipeworks Manifest", 'From Script To Software Service', "Powerful Powershell Formatting", "Scripting Securely with SecureSettings", "NOHtml Sites", "A Simple StockTicker", "Creating a CitiBike Station Finder"
+        }, @{
+            "Play with Pipeworks" = "Write-ASPDotNetScriptPage", "ConvertFrom-Markdown", "Making Editing Easier With Markdown", "Write-Crud", "Write-ScriptHTML", "Making Tables with Out-HTML", "Working with Write-Link"
+        }, @{
+            "Connecting the Clouds" = "Building with Bootstrap", "Get-Paid with Stripe", "Getting GitIt", "Get-Web Content From Anywhere", "Pick up the Phone with Pipeworks", "Implicit Texting with Twilio", "The Wonders of Wolfram Alpha","JQueryUI in Pipeworks", 'New-WebPage And JQuery', 'New-Region And JQueryUI', "Pipeworks Writes CRUD", "Managing Amazon Web Services with PowerShell Pipeworks", "Using Azure Table Storage in Pipeworks", "Publishing Pipeworks to Azure", 'Looking Up Locations With Resolve-Location', 'Simplifying Slideshows'
+        }, @{
+            "Join Windows and Web" = "Why Windows", "Scripting with Superglue", "Integrated Intranet", "Simpler SEO"
+        }
+    }

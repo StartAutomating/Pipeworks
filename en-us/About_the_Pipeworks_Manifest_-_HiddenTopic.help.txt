@@ -1,0 +1,1 @@
+HiddenTopic (or HiddenTopics) is a list of topics that will be hidden from normal view.  You can still visit the topic page directly to visit the topic, but it will not show up in menus.

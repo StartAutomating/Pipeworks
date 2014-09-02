@@ -1,0 +1,1 @@
+The Table section of the Pipeworks manifest describes information stored in a public azure table that the module service can access.

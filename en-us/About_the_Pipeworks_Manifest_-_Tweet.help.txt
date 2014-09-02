@@ -1,0 +1,1 @@
+If the Pipeworks Manifest includes the Tweet setting, a tweet this link will be added to each page.  This setting can be overridden with .AntiSocial.

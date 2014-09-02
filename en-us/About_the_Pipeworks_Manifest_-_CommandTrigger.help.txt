@@ -1,0 +1,12 @@
+The CommandTrigger section of the PipeworksManifest describes when commands will be triggered on a device.  At current, only one setting is supported: Shake. 
+
+
+Here is an example of a Pipeworks manifest with a CommandTrigger section:
+
+    @{
+        CommandTrigger = @{
+            "Shake" = "Get-RandomPowerShellTip"
+        }
+    }
+
+

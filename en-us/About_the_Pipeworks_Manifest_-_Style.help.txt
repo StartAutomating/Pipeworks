@@ -1,0 +1,62 @@
+The Style section of the Pipeworks manifest declares a CSS style to use on each page.  It is also used to provide color scheme information when generating a bootstrap theme or Win8 app.
+
+This section is almost exactly like CSS, except that nesting happens with Hashtables, not whitespace, and =, not : is used to separate values.
+
+
+Here's a simple sample:
+
+    @{
+        Style = @{
+            Body = @{       
+                "font-family" = "Segoe UI"     
+                "font-size" = "1.05em"
+            
+                "background-color" = "#FFFFFF"
+                "color" = "#09952E"
+            }
+            'a' = @{
+                'color' = "#09952E"
+            }                
+        }
+
+    }
+
+
+Here is a more comple example:
+
+    @{
+        Style = @{
+            body = @{
+                "font-family" = "'Segoe UI', 'Segoe UI Symbol', Helvetica, Arial, sans-serif"            
+                'font-size' = "1.1em"
+                'color' = '#0248B2'
+                'background-color' = '#FFFFFF'
+            }
+            'a' = @{
+                'color' = '#012456'            
+            }
+        
+            '.MajorMenuItem' = @{
+                'font-size' = 'large'
+            }
+            '.MinorMenuItem' = @{
+                'font-size' = 'medium'            
+            }
+            '.ExplanationParagraph' = @{
+                'font-size' = 'medium'
+                'text-indent' = '-10px'
+            }
+            '.ModuleWalkthruExplanation' = @{
+                'font-size' = 'medium'       
+                'margin-right' = '3%'       
+            }
+
+            '.ModuleWalkthruOutput' = @{
+                'font-size' = 'medium'           
+            }
+            '.PowerShellColorizedScript' = @{
+                'font-size' = 'medium'
+            }
+        
+        }
+    }

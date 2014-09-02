@@ -1,0 +1,2 @@
+The moduleTemplate is the PowerShell web template (.pswt) used to display the core module page.  A .pswt allows you to customize the look and feel of a pipeworks page.  It directly replaces variable names within the page.   By default, this is set to Module.pswt.
+

@@ -1,0 +1,14 @@
+The DomainSchematics section describes how the Pipeworks module will be published.  It is a hashtable, containing a series of domains and a list of schematics to use while publishing.
+
+
+A site can be published to multiple domains.  To do this, separate each item with a |
+
+    
+Here's an example of a site that would be published to 4 different URLs, using the default schematic:
+
+    @{
+        DomainSchematics = @{
+            "StartLearningPowerShell.com | Start-LearningPowershell.com | www.Start-LearningPowershell.com | www.StartLearningPowerShell.com" = 
+                "Default"
+        }
+    }

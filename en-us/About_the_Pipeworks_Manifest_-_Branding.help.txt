@@ -1,0 +1,7 @@
+The branding section of the Pipeworks manifest describes the branding displayed on each page.  
+
+By default, this will display a link to Start-Automating and to PowerShell Pipeworks.  
+
+It can be blank, or can contain any HTML or Markdown you'd like.
+
+

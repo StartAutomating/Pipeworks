@@ -1,0 +1,11 @@
+The shortcut section of the Pipeworks manifest describes local shortcuts to add to the Start Menu when the module is installed.  This enables easier use of PowerShell built tools by everyday users, and easy access to online help for a module.
+
+
+Here's an example:
+
+    @{
+        Shortcut = @{
+            "Asset Inventory Tool" = "Show-Asset -Show"
+            "Help" = "http://startlearningpowershell.com"
+        }
+    }

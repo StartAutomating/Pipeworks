@@ -1,0 +1,17 @@
+The DefaultCommand section of the Pipeworks manifest describes the command that will run by default when a user visits the page.
+
+
+It is a hashtable, and must contain the name of the command.  It may contain a nested hashtable called Parameter, which will provide parameters to the command.
+
+
+DefaultCommands do not need to be registered as web commands, since they cannot accept open-ended input.
+
+
+Here is an example:
+
+
+    @{
+        DefaultCommand = @{
+            Name = 'Get-RandomPowerShellTip'
+        }
+    }

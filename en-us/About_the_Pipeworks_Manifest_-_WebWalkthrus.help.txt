@@ -1,0 +1,1 @@
+The WebWalkthrus setting of the Pipeworks manifest lists walkthrus whose output should be considered HTML.  Each WebWalkthru should also be in the Trusted Walkthru list.  If a trusted walkthru runs, and is not in WebWalkthrus, it's result will be piped into Out-HTML.

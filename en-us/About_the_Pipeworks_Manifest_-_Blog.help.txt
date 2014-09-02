@@ -1,0 +1,30 @@
+The Blog Pipeworks Manifest setting is a hashtable that describes RSS feed information about the site.  
+
+
+If provided, the home page will have a link to the blog's RSS feed, and the page will contain the appropriate metadata for search engines.
+
+If only a name and a description are provided, a feed will be automatically provided by the module's topics.
+
+Additionally, the Blog section can be used with the Blog Schematic
+
+Here is an example of a completed blog section that uses the built-in RSS feed:
+
+
+    Blog = @{
+        Name = "Start-Scripting"
+        Description = "Stop-WastingTime.  Start-Scripting -with PowerShell"                
+    }
+
+Here is an example that uses it's own feed:
+
+
+    Blog = @{
+        Name = "Start-Scripting"
+        Description = "Stop-WastingTime.  Start-Scripting -with PowerShell"                
+        Link = "http://blog.start-automating.com/"
+    }
+
+
+
+
+

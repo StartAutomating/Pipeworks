@@ -1,0 +1,7 @@
+The logo of the pipeworks manifest is a URL to a logo file to use on all pages.  The url should be root-relative (i.e. /Assets/Logo.png)
+
+Here is an example:
+
+    @{
+        Logo = "/Assets/PowershellPipeworks_150.png"
+    }

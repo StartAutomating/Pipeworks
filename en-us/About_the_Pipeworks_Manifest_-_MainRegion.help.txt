@@ -1,0 +1,2 @@
+The InnerRegion is a Pipeworks Manifest setting that describes how the main region of a page will be rendered.  It is as Hashtable, and the input in the Hashtable will be provided to the New-Region command.
+

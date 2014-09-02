@@ -1,0 +1,1 @@
+The CommandOrder is a list of strings, and it determines the order commands will be displayed (if there commands are not grouped).  By default, commands will be alphabetized.

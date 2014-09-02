@@ -1,0 +1,1 @@
+If the Stealth setting is provided in the Pipeworks Manifest, the module will not generate a robots.txt or sitemap.xml, and all pages will include meta information dissuading search engines from crawling the page.

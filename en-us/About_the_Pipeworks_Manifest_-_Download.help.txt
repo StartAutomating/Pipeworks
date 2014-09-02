@@ -1,0 +1,1 @@
+Download is a Hashtable of files that will be downloaded when the module is published.  The key of the hashtable is the URL, and the value is the local path of the downloaded file, relative to the output directory.

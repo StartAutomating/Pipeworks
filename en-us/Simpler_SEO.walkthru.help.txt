@@ -1,0 +1,28 @@
+# Search Engine Optimization is very simple in PowerShell Pipeworks.
+# PowerShell Pipeworks can easily integrate with [Google's Webmaster tools](http://www.google.com/webmasters/tools/).  
+New-PipeworksManifest -Name ASampleModule -GoogleSiteVerification xjCcGADm2Pnu7fF3WZnPj5UYND9SVqB3qzJuvhe0k1o
+
+# You can add Analytics trackers just as easily:
+New-PipeworksManifest -Name ASampleModule -AnalyticsId UA-XXXXXXX-XX
+
+# It can also work with [Bing's webmaster tools](http://www.bing.com/toolbox/webmaster)
+New-PipeworksManifest -Name ASampleModule -BingValidationKey 7B94933EC8C374B455E8263FCD4FE5EF
+
+# You can add meta keywords to each page
+New-PipeworksManifest -Name ASampleModule -Keyword A, Sample, Module
+
+# You can let people Like your site by making it a Facebook app:
+New-PipeworksManifest -Name ASampleModule -FacebookAppId MyFacebookAppId
+
+# You can increase sharing by adding Tweet links:
+New-PipeworksManifest -Name ASampleModule -Tweet
+
+# Pipeworks also automatically does a lot of little things to help SEO:
+# * [Sitemaps](http://start-automating.com/Sitemap.xml) are automatically generated
+# * Pages automatically get description &lt;meta&gt; tags
+# * Creating RSS feeds for topics and commands
+# * Friendly URLs for aliases, commands, and topics, like [http://start-automating.com/Training/](http://start-automating.com/Training/)
+$null
+
+
+

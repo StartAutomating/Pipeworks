@@ -1,0 +1,6 @@
+GitIt describes projects to pull from Git prior to deployment.  
+
+
+See Also:
+
+* [Getting GitIt](/Getting_GitIt/)

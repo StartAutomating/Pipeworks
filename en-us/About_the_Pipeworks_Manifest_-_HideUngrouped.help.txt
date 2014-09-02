@@ -1,0 +1,1 @@
+If HideUngroupedHelp is set, topics that are not in a Group will not be displayed in menus.

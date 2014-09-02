@@ -1,0 +1,3 @@
+The BingValidationKey will add a Bing Webmaster Tools validation key to each page.  This will enable you to use the site with [Bing Webmaster Tools](http://www.bing.com/toolbox/webmaster)
+
+

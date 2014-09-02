@@ -1,0 +1,2 @@
+The PublishDirectory setting in the Pipeworks manifest describes where the module should be published.  By default, it will be published beneath c:\inetpub\wwwroot
+

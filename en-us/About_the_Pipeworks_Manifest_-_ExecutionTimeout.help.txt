@@ -1,0 +1,5 @@
+The ExecutionTimeout allows you to customize the ASP.Net execution timeout for each page.   
+
+The value must be a string that can be a timespan (for instance: '00:02:00').  
+
+By default, the timeout is 2 minutes.

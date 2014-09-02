@@ -1,0 +1,1 @@
+If UseShiv is provided, the HTML5 shiv tool for IE will be downloaded, and installed on each page.

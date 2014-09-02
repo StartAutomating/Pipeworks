@@ -1,0 +1,1 @@
+The Javascript section of the Pipeworks manifest lists javascript files to include on all pages.

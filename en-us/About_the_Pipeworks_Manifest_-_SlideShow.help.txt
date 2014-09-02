@@ -1,0 +1,17 @@
+The SlideShow section of the Pipeworks manifest describes a SlideShow that will be played on the landing page.  SlideShow items may be HTML or image links.
+
+Here's an example:
+
+    @{
+        Slideshow = @{
+            Slides = "/Assets/Screenshot_NowPlaying.png", 
+                "/Assets/screenshot_DJMode.png", 
+                "/Assets/Screenshot_PlayingAndRaining.png", 
+                "/Assets/Screenshot_KaraokeMode.png", 
+                "/Assets/screenshot_Raining.png", 
+                "/Assets/Screenshot_VisualSearch.png", 
+                "/Assets/Screenshot_Edit_Lyrics.png", 
+                "/Assets/Screenshot_EditMetaData.png", 
+                "/Assets/Screenshot_PlayingAndRaining.png"
+        }
+    }

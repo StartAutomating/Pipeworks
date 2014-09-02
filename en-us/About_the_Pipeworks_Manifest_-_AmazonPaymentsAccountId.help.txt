@@ -1,0 +1,1 @@
+The Amazon Payments Account ID.  At this point, due to breaking changes in Amazon web stores, Amazon payment is not supported in Pipeworks.

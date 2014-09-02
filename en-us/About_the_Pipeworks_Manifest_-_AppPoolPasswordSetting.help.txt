@@ -1,0 +1,10 @@
+The AppPoolPassWordSetting defines a SecureSetting that contains the password for the AppPool user.  
+
+
+If this and AppPoolUser are provided, the module will be published under a specific app pool user account.  This can be very useful for Intranet modules that need to run as a particular user.
+
+See Also:
+
+
+* [AppPoolUser](/About_the_Pipeworks_Manifest_-_AppPoolUser/)
+* [Scripting Securely with SecureSettings](/Scripting_Securely_with_SecureSettings/)

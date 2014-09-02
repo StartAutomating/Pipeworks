@@ -1,0 +1,1 @@
+If set, then built in commands cannot be used within a Pipeworks module (only commands from the current module can be).  If not set, any command can be accessed via URL.  If the command is not set in WebCommand, the help handler will be used.  This is why [http://powershellpipeworks.com/Get-ChildItem/](http://powershellpipeworks.com/Get-ChildItem/) works, and isn't a threat.

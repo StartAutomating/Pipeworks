@@ -1,0 +1,1 @@
+The Default Template describes the PowerShell Web Template (.pswt) used to display the main page.  A .pswt allows you to customize the look and feel of a pipeworks page.  It directly replaces variable names within the page.   By default, this is set to Default.pswt.

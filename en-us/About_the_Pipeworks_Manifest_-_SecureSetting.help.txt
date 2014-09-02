@@ -1,0 +1,6 @@
+The SecureSetting section of the Pipeworks manifest is a list of SecureSettings that will be copied into the web.config when the module is published.  Get-SecureSetting will retreive these settings when used inside of a website.  This enables seamless secure scripting between a development environment and a published page.
+
+
+See also:
+
+* [Scripting Securely with SecureSettings](/Scripting_Securely_with_SecureSettings/)

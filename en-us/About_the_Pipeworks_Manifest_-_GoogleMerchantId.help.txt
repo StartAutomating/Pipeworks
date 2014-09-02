@@ -1,0 +1,1 @@
+If provided the GoogleMerchantID can add Google Checkout integration for items on a page.  Any products rendered within the page will include Google Checkout links.

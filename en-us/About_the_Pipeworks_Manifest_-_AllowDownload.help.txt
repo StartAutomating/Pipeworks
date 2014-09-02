@@ -1,0 +1,4 @@
+AllowDownload is a Pipeworks Manifest setting that will make the published module downloadable.  
+
+
+If set, a zip file will be created containing the module and all of it's requirements.  This zip file will also include an install.cmd, and, optionally, a shortcut installer.  The published module will contain a link "Download" that will download the .zip file.

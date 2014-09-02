@@ -1,0 +1,11 @@
+The Organization section describes information about the publishing organization, and adds some contact information to each page.
+
+
+This example adds a phone number and an email link:
+
+    @{
+        Organization = @{
+            Telephone = "+1(206)607-6555"
+            Email = "info@start-automating.com"
+        }
+    }

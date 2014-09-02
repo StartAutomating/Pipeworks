@@ -1,0 +1,111 @@
+The schema section of the Pipeworks manifest describes itemdata schemas used on the page.  This is useful for making your site HTML5 compliant, and also for allowing people to interact more reliably with the site by using Get-Web -AsMicrodata
+
+
+Here's an example that declares a few schemas:
+
+    @{
+        Schema = @{
+            GamerAchievementInfo = @{
+                Name='GamerAchievementInfo'
+                PSTypeName='http://shouldbeonschema.org/Class'
+                Url = 'http://UnlockAchievement.com/GamerAchievementInfo/'
+                Property = @{
+                    Name='Name'
+                    DeclaringType = 'http://schema.org/Thing'
+                    PSTypeName='http://shouldbeonschema.org/Property'
+                    Description='The name of the item.'
+                }, @{
+                    Name='Description'
+                    DeclaringType = 'http://schema.org/Thing'
+                    PSTypeName='http://shouldbeonschema.org/Property'
+                    Description='A short description of the item.'
+                }, @{
+                    Name='Image'
+                    DeclaringType = 'http://schema.org/Thing'
+                    PSTypeName='http://shouldbeonschema.org/Property'
+                    Description='URL of an image of the item.'
+                    TypeName = 'Url'
+                }, @{
+                    Name='Url'
+                    DeclaringType = 'http://schema.org/Thing'
+                    PSTypeName='http://shouldbeonschema.org/Property'
+                    Description='The namespace the class is defined in.'
+                    TypeName = 'Url'
+                }, @{
+                    Name='GamerTag'                
+                    PSTypeName='http://shouldbeonschema.org/Property'
+                    Description='The gamertag or ID of an the gamer'
+                    TypeName = 'Url'
+                }, @{
+                    Name='Games'                
+                    PSTypeName='http://shouldbeonschema.org/Property'
+                    Description='A list of games the gamer owns or has played'
+                    TypeName = 'http://UnlockAchievement.com/GameAchievementInfo'
+                }
+              
+                Description="Achievement information for a gamer."
+        
+                ParentClass = @{
+                    Name = 'Thing'
+                    Url = 'http://schema.org/Thing'
+                    PSTypeName = 'http://shouldbeonschema.org/Class'
+                }
+            }
+
+            GameAchievementInfo = @{
+                Name='GameAchievementInfo'
+                PSTypeName='http://shouldbeonschema.org/Class'
+                Url = 'http://UnlockAchievement.com/GameAchievementInfo/'
+                Description="Achievement information for a game."
+
+                ParentClass = @{
+                    Name = 'Thing'
+                    Url = 'http://schema.org/Thing'
+                    PSTypeName = 'http://shouldbeonschema.org/Class'
+                }
+
+
+
+                Property = @{
+                    Name='Name'
+                    DeclaringType = 'http://schema.org/Thing'
+                    PSTypeName='http://shouldbeonschema.org/Property'
+                    Description='The name of the item.'
+                }, @{
+                    Name='Description'
+                    DeclaringType = 'http://schema.org/Thing'
+                    PSTypeName='http://shouldbeonschema.org/Property'
+                    Description='A short description of the item.'
+                }, @{
+                    Name='Image'
+                    DeclaringType = 'http://schema.org/Thing'
+                    PSTypeName='http://shouldbeonschema.org/Property'
+                    Description='URL of an image of the item.'
+                    TypeName = 'Url'
+                }, @{
+                    Name='Url'
+                    DeclaringType = 'http://schema.org/Thing'
+                    PSTypeName='http://shouldbeonschema.org/Property'
+                    Description='The namespace the class is defined in.'
+                    TypeName = 'Url'
+                }, @{
+                    Name='PossibleScore'                
+                    PSTypeName='http://shouldbeonschema.org/Property'
+                    Description='The possible score for a game'
+                    TypeName = 'Integer'
+                }, @{
+                    Name='MyScore'                
+                    PSTypeName='http://shouldbeonschema.org/Property'
+                    Description='My score for a game'
+                    TypeName = 'Integer'
+                }, @{
+                    Name='PercentComplete'                
+                    PSTypeName='http://shouldbeonschema.org/Property'
+                    Description='The percent of achievements unlocked for the game'
+                    TypeName = 'Float'
+                }
+            }
+
+
+        }
+    }

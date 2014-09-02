@@ -1,0 +1,1 @@
+If UseJQuery is provided, JQuery will be downloaded and used in each page in the site.

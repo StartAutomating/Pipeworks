@@ -1,0 +1,2066 @@
+<?xml version="1.0" encoding="utf-16"?>
+<Configuration>
+  <ViewDefinitions>
+    <View>
+      <Name>http://schema.org/Place</Name>
+      <ViewSelectedBy>
+        <TypeName>http://schema.org/Place</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>
+    
+
+    # A Place will display a header with the name of the place
+    # it will display the address, telephone.
+    # if latitude and longitude are available, 
+    # it will display a Bing map, and if present, the mapSize parameter will determine resolution
+
+
+    $canDisplayMap = $true
+    $obj = $_
+    if ($obj.Latitude -and $obj.longitude) {
+        $displayMode = "AerialWithLabels"
+        
+        if ($obj.StreetAddress) {
+            $displayMode = "Road"
+        }                        
+    }
+
+
+    $lat = $obj.Latitude 
+    $long = $obj.Longitude
+
+    $displayName = if ($obj.Name) {        
+        $obj.Name
+    } elseif ($obj.StreetAddress -and $obj.Locality) {
+        "$($obj.StreetAddress) $($obj.Locality)"
+    } elseif ($obj.Latitude -and $obj.Longitude)  {
+        "$($obj.Latitude)x$($obj.Longitude)"
+    }
+    if ($canDisplayMap )  { 
+        $mapSize = if ($obj.MapSize) {
+            $obj.MapSize
+        } else {
+            "420,315"
+        }
+        if ($lat -notlike "*.*" -or $long -notlike "*.*") {
+            $zoomLevel = 7
+        } else {
+            $latp = @($lat.ToString().Split("."))[-1].Length
+            $longp = @($long.ToString().Split("."))[-1].Length
+            if ($latP -lt $longp)
+            {
+                $zoomLevel  = 7 + (1.5 * $latP)
+            } else {
+                $zoomLevel  = 7 + (1.5 * $longP)
+            }
+        }
+        $mapId = "Map_" + $DisplayName.Replace(" ", "_").Replace(",", "_").Replace(".","_")
+        $width,$height = $mapSize -split ","
+        
+        $address= 
+            if ($obj.Address) {
+                $obj.Address + "&lt;BR/&gt;"
+            } else {
+                ""
+            }
+        
+
+        $telephone= 
+            if ($obj.Telephone) {
+                $obj.Telephone + "&lt;BR/&gt;"
+            } else {
+                ""
+            }
+
+        "&lt;h4&gt;$displayName&lt;/h4&gt;&lt;div style='text-align:center'&gt;
+        
+        $address
+        $telephone
+
+
+
+
+        
+        &lt;iframe width='$width' height='$height' frameborder='0' scrolling='no' marginheight='0' marginwidth='0' src='http://dev.virtualearth.net/embeddedMap/v1/ajax/${displayMode}?zoomLevel=$zoomLevel&amp;center=${lat}_${long}&amp;pushpins=${lat}_${long}' &gt;&lt;/iframe&gt;&lt;/div&gt;"
+        
+    } else {
+        $obj | Select * | Out-HTML
+    }
+</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+    <View>
+      <Name>Graph</Name>
+      <ViewSelectedBy>
+        <TypeName>Graph</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>
+    $thisObject = $_
+
+    $GraphType = if ($thisObject.GraphType) {
+        $thisObject.GraphType
+        $thisObject.psobject.properties.remove("GraphType")
+    } else {
+        "Bar"
+    }
+
+    $colorList = if ($thisObject.ColorList) {
+        $thisObject.ColorList
+        $thisObject.psobject.properties.remove("ColorList")
+    } else {
+        $null
+    }
+
+
+    $OutHtmlParams = @{"As$($GraphType)Graph"=$true}
+
+    if ($colorList) {
+        $OutHtmlParams.ColorList = $colorList
+    }
+
+    $outHtmlCmd = $ExecutionContext.SessionState.InvokeCommand.GetCommand("Out-HTML", "Function")
+
+    if (-not $outHtmlCmd.Parameters."As$($GraphType)Graph") {
+        $OutHtmlParams.Remove("As$($GraphType)Graph")
+    }
+    
+    $thisObject.pstypenames.clear()
+    $thisObject.pstypenames.add('GraphData')
+    $thisObject | Out-HTML @OutHtmlParams
+
+</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+    <View>
+      <Name>http://schema.org/JobPosting</Name>
+      <ViewSelectedBy>
+        <TypeName>http://schema.org/JobPosting</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>
+    $item = $_
+    $jobTitle = if ($item.Name) {
+        $item.Name
+    } elseif ($item.Title) {
+        $item.Title
+    }
+    $description = if ($item.Description -like "*&lt;*") {
+        # Treat as HTML
+        $item.Description
+    } elseif ($item.Description) {
+        # Treat as markdown
+        
+        ConvertFrom-Markdown $item.Description
+    } else {
+        ""
+    }
+    
+    $responsibilities =if ($item.responsibilities) {
+        "
+        &lt;h3&gt;Roles &amp; Responsibilities&lt;/h3&gt;
+        &lt;blockquote&gt;
+            $($item.Responsibilities.Replace("`n", "&lt;BR/&gt;"))
+        &lt;/blockquote&gt;        
+        "
+        
+    } else {
+        ""
+    }
+    
+    $experienceRequirements =if ($item.experienceRequirements) {
+        "
+        &lt;h3&gt;Experience Required&lt;/h3&gt;
+        &lt;blockquote&gt;
+            $(ConvertFrom-Markdown $item.experienceRequirements.Replace("`n", "&lt;BR/&gt;"))
+        &lt;/blockquote&gt;        
+        "
+        
+    } else {
+        ""
+    }
+    
+    $educationRequirement =if ($item.educationRequirements) {
+        "
+        &lt;h3&gt;Education Required&lt;/h3&gt;
+        &lt;blockquote&gt;
+            $(ConvertFrom-Markdown $item.educationRequirements.Replace("`n", "&lt;BR/&gt;"))
+        &lt;/blockquote&gt;        
+        "
+        
+    } else {
+        ""
+    }
+    
+    $qualifications =if ($item.qualifications) {
+        "
+        &lt;h3&gt;Special Qualifications&lt;/h3&gt;
+        &lt;blockquote&gt;
+            $(ConvertFrom-Markdown $item.qualifications.Replace("`n", "&lt;BR/&gt;"))
+        &lt;/blockquote&gt;        
+        "
+        
+    } else {
+        ""
+    }
+    
+    $skills =if ($item.Skills) {
+        "
+        &lt;h3&gt;Skills&lt;/h3&gt;
+        &lt;blockquote&gt;
+            $(ConvertFrom-Markdown $item.skills.Replace("`n", "&lt;BR/&gt;"))
+        &lt;/blockquote&gt;        
+        "
+        
+    } else {
+        ""
+    }
+    
+    $locationAndOrg =if ($item.JobLocation -or $item.HiringOrganization) {
+        "$($item.JobLocation) $(if ($item.HiringOrganization) { "for $($item.HiringOrganization)" })"
+    }
+    
+    
+    
+    $ApplyButton  = if ($item.ApplyToEmail) {
+        "&lt;div style='float:right'&gt;$(
+            Write-Link -Button -Caption "Apply" -Url "mailto:$($item.ApplyToEmail)?subject=$jobtitle"
+        )&lt;/div&gt;
+        &lt;div style='clear:both'&gt;&lt;/div&gt;"
+    } else {
+        ""
+    } 
+    
+    if ($item.Url) {
+        $jobTitle = "&lt;a href='$($item.Url)'&gt;$jobTitle&lt;/a&gt;"        
+    }
+    
+    $jobId = if ($item.RowKey) {
+        "&lt;div style='float:right;text-size:x-small'&gt;JobId: $($item.RowKey)&lt;/div&gt;
+        &lt;div style='clear:both'&gt;
+        &lt;/div&gt;"
+    } else {
+        ""
+    }
+    
+    "&lt;h2&gt;$jobTitle&lt;/h2&gt;
+    $locationAndOrg
+    &lt;blockquote&gt;
+    $description
+    &lt;/blockquote&gt;
+    $responsibilities    
+    $experienceRequirements
+    $skills    
+    $qualifications    
+    $educationRequirements
+    $ApplyButton           
+    $JobId
+    "
+</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+    <View>
+      <Name>http://schema.org/Person</Name>
+      <ViewSelectedBy>
+        <TypeName>http://schema.org/Person</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>
+    $person = $_
+
+    if ($Request ) 
+    {
+        $name = $person.Name
+    
+        $nameLink = $name 
+        if ($person.Url) {
+            $nameLink = "&lt;a href='$($person.Url)'&gt;$name&lt;/a&gt;"
+        }
+
+        $itsMe = if ($session -and ($person.UserID -eq $session["User"].UserID -and $person.UserEmail -eq $session["User"].UserEmail)) {
+            $true
+        } else {
+            $false
+        }           
+
+            
+        $imageAndDescription = ""
+
+        $imageAndDescription += 
+            if ($person.Image) {
+                "&lt;img src='$($person.Image)' style='border:0' /&gt;"
+            } elseif ($person.FacebookId -and $person.FacebookAccessToken) {
+                # They may not have an image, but they have a Facebook ID and access token, so show their facebook photo
+                "&lt;img src='http://graph.facebook.com/$($person.FacebookId)/picture?type=large' style='border:0' border='0' /&gt;"
+            } elseif ($person.LiveID -and $person.LiveIDAccessToken) {
+                # They have a liveID, so show their liveID
+                "&lt;img src='https://apis.live.net/v5.0/$($person.LiveId)/picture' style='border:0' border='0'/&gt;"
+            } elseif ($person.ThumbnailPhoto) {
+                "&lt;img src='data:image/jpg;base64,$($person.ThumbnailPhoto)' style='border:0' border='0'/&gt;"
+            }
+        $imageAndDescription += 
+            if ($person.Description -and $person.Description -like "*&lt;*") {
+                $person.Description 
+            } elseif ($person.Description) {
+                ConvertFrom-Markdown $person.Description 
+            } else {
+                ""
+            }
+
+        if ($person.Age) {
+            $age  = $person.Age -as [int]
+        } elseif ($person.Birthday -as [DateTime]) {
+            $daysOld = ((Get-date) - ($person.Birthday -as [Datetime])).Days
+            $age = [Math]::Floor($daysOld / 365)
+            
+        }
+
+
+        $billMe = if ($itsMe -and $person.Balance -and ($person.Balance -as [Double] -gt 1) -and $serviceUrl) {
+            $payUpUrl =  if ($serviceUrl.ToString().Contains("?")) {
+                "$serviceUrl" + "&amp;settle=true"
+            } else {
+                "$serviceUrl" + "?settle=true"
+            }
+            New-Region -LayerId "SettlePersonalAccountBalanceFor$($person.UserID)" -AsPopdown -LayerUrl @{"Account Balance -  $($Person.Balance)."= $payUpUrl}  -Layer @{"Account Balance -  $($Person.Balance)."="Please take care of your bill when you can"} -Style @{"font-size"="xx-small";"float" = "right"}  
+        } else { 
+            ""
+        }
+
+        
+
+        $imageAndDescription += 
+            if ($age) {
+                if ($person.Gender) {
+                    "&lt;BR/&gt;$age | $($person.Gender)"
+                } else {
+                    "&lt;BR/&gt;$age"
+                }
+            } else {
+                ""
+            } 
+
+        $imageAndDescription +=
+            if ($person.Location -and $person.Location.Name) {
+                "&lt;BR/&gt;" + $($person.Location.Name)
+            }
+
+        $imageAndDescription +=
+            if ($person.LastLogin -and $person.Location.Name) {
+                "&lt;BR/&gt;" + $($person.Location.Name)
+            }
+
+        $AdditionalContent = ""
+
+        $AdditionalContent +=
+            if ($person.Title) {
+                "&lt;h3&gt;" + $person.Title + 
+                $(if ($person.Department) { 
+                    "&lt;br/&gt;$($person.Department)"
+                }) +"&lt;/h3&gt;"
+            }
+
+        $AdditionalContent += 
+            if ($person.Bio) {
+                "&lt;BR/&gt;" + $person.Bio + ("&lt;BR/&gt;" * 3)
+            }
+
+        $CloseMailLink = if ($person.Email -or $person.UserEmail) {
+            "&lt;/a&gt;"
+        } else {
+            ""
+        }
+
+        $openMailLink = if ($person.UserEmail) {
+            "&lt;a href='mailto:$($person.UserEmail)'&gt;"
+        } elseif ($person.Email) {
+            "&lt;a href='mailto:$($person.Email)'&gt;"
+        } else {
+            ""
+        }
+
+        $callMeLink = if ($person.Telephone) {
+            "&lt;BR/&gt;" + $person.Telephone
+        } else {
+            ""
+        }
+
+        $officeLocationLink = if ($person.Office) {
+            "&lt;BR/&gt;" + $person.Office
+        } else {
+            ""
+        }
+
+
+        $additionalContent += if ($person.InteractionCount) {
+            
+            
+        } else {
+            ""
+        }
+
+        "&lt;h3 style='float:left'&gt;
+        $NameLink
+        &lt;/h3&gt;
+        &lt;div style='clear:both'&gt; &lt;/div&gt;
+        &lt;div style='float:right'&gt;
+        $($BillMe)
+        &lt;/div&gt;
+        
+        &lt;hr/&gt;
+        &lt;br/&gt;
+        &lt;div style='clear:both'&gt; &lt;/div&gt;
+        &lt;div style='float:right;text-align:center'&gt;
+            $OpenMailLink $imageAndDescription $CloseMailLink $callMeLink $officeLocationLink
+        &lt;/div&gt;
+        &lt;div&gt;
+            $AdditionalContent
+        &lt;/div&gt;
+        $(if ($person.Awards) {
+            "
+            &lt;div style='float:right;width:33%;margin:30px'&gt;
+                $(
+                $awardsList = @($person.Awards -split ';')
+
+                $awardOrder = if ($pipeworksManifest.AwardOrder) {
+                    @($pipeworksManifest.AwardOrder)
+                } elseif ($pipeworksManifest.AwardsOrder) {
+                    @($pipeworksManifest.AwardsOrder)
+                } else {
+                    $awardsList | Sort-Object
+                }
+
+                foreach ($a in $awardOrder) {
+                    if ($awardsList -contains $a) {
+                        if ($pipeworksManifest.Award.$a) {
+
+                        } elseif ($pipeworksManifest.Awards.$a) {
+                            
+                        } else {
+                            "&lt;span style='font-size:1.33em;float:right'&gt;$a&lt;/span&gt;
+                            &lt;br style='clear:both'/&gt;"
+                        }
+                    }
+                }
+                )
+            &lt;/div&gt;
+            &lt;br style='clear:both;line-height:400%'/&gt;"
+            
+        })
+        $(
+        if ($person.InteractionCount) {
+            "
+            &lt;div style='float:right;width:33%;margin:30px'&gt;            
+            $(
+            $interactionContent = ConvertFrom-StringData "$($person.InteractionCount)".Replace(":", "=") -ErrorAction SilentlyContinue
+            if ($interactionContent) {
+                $interactionOrder = 
+                    if ($pipeworksManifest.Interaction) {
+                        @($pipeworksManifest.Interaction)
+                    } elseif ($pipeworksManifest.Interactions) {
+                        @($pipeworksManifest.Interactions)
+                    } else {
+                        $interactionContent.Keys | Sort-Object
+                    }         
+                foreach ($k in $interactionOrder) {                                            
+                    $V = $interactionContent[$k]
+                    "&lt;div itemscope='' itemtype='http://schema.org/UserInteraction'&gt;
+                        &lt;div style='float:left;width:50%'&gt;&lt;span itemprop='Count'&gt;$v&lt;/span&gt;&lt;/div&gt;
+                        &lt;div style='float:right;width:50%'&gt;&lt;span itemprop='Name'&gt;$k&lt;/span&gt;&lt;/div&gt;                        
+                        &lt;br style='clear:both' /&gt;
+                    &lt;/div&gt;"
+                    
+                }
+                
+            }
+            )
+            &lt;/div&gt;
+            &lt;br style='clear:both;line-height:400%'/&gt;
+            "
+        }
+        )
+        
+        "
+    
+    } else {
+        
+        Write-Host $person.Name 
+    }
+    
+
+    
+             
+
+                
+
+
+</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+    <View>
+      <Name>Deserialized.http://schema.org/Person</Name>
+      <ViewSelectedBy>
+        <TypeName>Deserialized.http://schema.org/Person</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>
+    $person = $_
+
+    if ($Request ) 
+    {
+        $name = $person.Name
+    
+        $nameLink = $name 
+        if ($person.Url) {
+            $nameLink = "&lt;a href='$($person.Url)'&gt;$name&lt;/a&gt;"
+        }
+
+        $itsMe = if ($session -and ($person.UserID -eq $session["User"].UserID -and $person.UserEmail -eq $session["User"].UserEmail)) {
+            $true
+        } else {
+            $false
+        }           
+
+            
+        $imageAndDescription = ""
+
+        $imageAndDescription += 
+            if ($person.Image) {
+                "&lt;img src='$($person.Image)' style='border:0' /&gt;"
+            } elseif ($person.FacebookId -and $person.FacebookAccessToken) {
+                # They may not have an image, but they have a Facebook ID and access token, so show their facebook photo
+                "&lt;img src='http://graph.facebook.com/$($person.FacebookId)/picture?type=large' style='border:0' border='0' /&gt;"
+            } elseif ($person.LiveID -and $person.LiveIDAccessToken) {
+                # They have a liveID, so show their liveID
+                "&lt;img src='https://apis.live.net/v5.0/$($person.LiveId)/picture' style='border:0' border='0'/&gt;"
+            } elseif ($person.ThumbnailPhoto) {
+                "&lt;img src='data:image/jpg;base64,$($person.ThumbnailPhoto)' style='border:0' border='0'/&gt;"
+            }
+        $imageAndDescription += 
+            if ($person.Description -and $person.Description -like "*&lt;*") {
+                $person.Description 
+            } elseif ($person.Description) {
+                ConvertFrom-Markdown $person.Description 
+            } else {
+                ""
+            }
+
+        if ($person.Age) {
+            $age  = $person.Age -as [int]
+        } elseif ($person.Birthday -as [DateTime]) {
+            $daysOld = ((Get-date) - ($person.Birthday -as [Datetime])).Days
+            $age = [Math]::Floor($daysOld / 365)
+            
+        }
+
+
+        $billMe = if ($itsMe -and $person.Balance -and ($person.Balance -as [Double] -gt 1) -and $serviceUrl) {
+            $payUpUrl =  if ($serviceUrl.ToString().Contains("?")) {
+                "$serviceUrl" + "&amp;settle=true"
+            } else {
+                "$serviceUrl" + "?settle=true"
+            }
+            New-Region -LayerId "SettlePersonalAccountBalanceFor$($person.UserID)" -AsPopdown -LayerUrl @{"Account Balance -  $($Person.Balance)."= $payUpUrl}  -Layer @{"Account Balance -  $($Person.Balance)."="Please take care of your bill when you can"} -Style @{"font-size"="xx-small";"float" = "right"}  
+        } else { 
+            ""
+        }
+
+        
+
+        $imageAndDescription += 
+            if ($age) {
+                if ($person.Gender) {
+                    "&lt;BR/&gt;$age | $($person.Gender)"
+                } else {
+                    "&lt;BR/&gt;$age"
+                }
+            } else {
+                ""
+            } 
+
+        $imageAndDescription +=
+            if ($person.Location -and $person.Location.Name) {
+                "&lt;BR/&gt;" + $($person.Location.Name)
+            }
+
+        $imageAndDescription +=
+            if ($person.LastLogin -and $person.Location.Name) {
+                "&lt;BR/&gt;" + $($person.Location.Name)
+            }
+
+        $AdditionalContent = ""
+
+        $AdditionalContent +=
+            if ($person.Title) {
+                "&lt;h3&gt;" + $person.Title + 
+                $(if ($person.Department) { 
+                    "&lt;br/&gt;$($person.Department)"
+                }) +"&lt;/h3&gt;"
+            }
+
+        $AdditionalContent += 
+            if ($person.Bio) {
+                "&lt;BR/&gt;" + $person.Bio + ("&lt;BR/&gt;" * 3)
+            }
+
+        $CloseMailLink = if ($person.Email -or $person.UserEmail) {
+            "&lt;/a&gt;"
+        } else {
+            ""
+        }
+
+        $openMailLink = if ($person.UserEmail) {
+            "&lt;a href='mailto:$($person.UserEmail)'&gt;"
+        } elseif ($person.Email) {
+            "&lt;a href='mailto:$($person.Email)'&gt;"
+        } else {
+            ""
+        }
+
+        $callMeLink = if ($person.Telephone) {
+            "&lt;BR/&gt;" + $person.Telephone
+        } else {
+            ""
+        }
+
+        $officeLocationLink = if ($person.Office) {
+            "&lt;BR/&gt;" + $person.Office
+        } else {
+            ""
+        }
+
+
+        $additionalContent += if ($person.InteractionCount) {
+            
+            
+        } else {
+            ""
+        }
+
+        "&lt;h3 style='float:left'&gt;
+        $NameLink
+        &lt;/h3&gt;
+        &lt;div style='clear:both'&gt; &lt;/div&gt;
+        &lt;div style='float:right'&gt;
+        $($BillMe)
+        &lt;/div&gt;
+        
+        &lt;hr/&gt;
+        &lt;br/&gt;
+        &lt;div style='clear:both'&gt; &lt;/div&gt;
+        &lt;div style='float:right;text-align:center'&gt;
+            $OpenMailLink $imageAndDescription $CloseMailLink $callMeLink $officeLocationLink
+        &lt;/div&gt;
+        &lt;div&gt;
+            $AdditionalContent
+        &lt;/div&gt;
+        $(if ($person.Awards) {
+            "
+            &lt;div style='float:right;width:33%;margin:30px'&gt;
+                $(
+                $awardsList = @($person.Awards -split ';')
+
+                $awardOrder = if ($pipeworksManifest.AwardOrder) {
+                    @($pipeworksManifest.AwardOrder)
+                } elseif ($pipeworksManifest.AwardsOrder) {
+                    @($pipeworksManifest.AwardsOrder)
+                } else {
+                    $awardsList | Sort-Object
+                }
+
+                foreach ($a in $awardOrder) {
+                    if ($awardsList -contains $a) {
+                        if ($pipeworksManifest.Award.$a) {
+
+                        } elseif ($pipeworksManifest.Awards.$a) {
+                            
+                        } else {
+                            "&lt;span style='font-size:1.33em;float:right'&gt;$a&lt;/span&gt;
+                            &lt;br style='clear:both'/&gt;"
+                        }
+                    }
+                }
+                )
+            &lt;/div&gt;
+            &lt;br style='clear:both;line-height:400%'/&gt;"
+            
+        })
+        $(
+        if ($person.InteractionCount) {
+            "
+            &lt;div style='float:right;width:33%;margin:30px'&gt;            
+            $(
+            $interactionContent = ConvertFrom-StringData "$($person.InteractionCount)".Replace(":", "=") -ErrorAction SilentlyContinue
+            if ($interactionContent) {
+                $interactionOrder = 
+                    if ($pipeworksManifest.Interaction) {
+                        @($pipeworksManifest.Interaction)
+                    } elseif ($pipeworksManifest.Interactions) {
+                        @($pipeworksManifest.Interactions)
+                    } else {
+                        $interactionContent.Keys | Sort-Object
+                    }         
+                foreach ($k in $interactionOrder) {                                            
+                    $V = $interactionContent[$k]
+                    "&lt;div itemscope='' itemtype='http://schema.org/UserInteraction'&gt;
+                        &lt;div style='float:left;width:50%'&gt;&lt;span itemprop='Count'&gt;$v&lt;/span&gt;&lt;/div&gt;
+                        &lt;div style='float:right;width:50%'&gt;&lt;span itemprop='Name'&gt;$k&lt;/span&gt;&lt;/div&gt;                        
+                        &lt;br style='clear:both' /&gt;
+                    &lt;/div&gt;"
+                    
+                }
+                
+            }
+            )
+            &lt;/div&gt;
+            &lt;br style='clear:both;line-height:400%'/&gt;
+            "
+        }
+        )
+        
+        "
+    
+    } else {
+        
+        Write-Host $person.Name 
+    }
+    
+
+    
+             
+
+                
+
+
+</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+    <View>
+      <Name>Walkthru</Name>
+      <ViewSelectedBy>
+        <TypeName>Walkthru</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>
+    $name = $_.Name
+    $walkthru = Get-Walkthru -Text $_.Description                    
+    New-Region -ItemType walkthru -AsWidget -Style @{
+        'text-align' = 'left'
+    } -Layer @{ 
+        $Name = Write-WalkthruHTML -WalkThru $walkthru -StepByStep
+    }   
+</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+    <View>
+      <Name>Module</Name>
+      <ViewSelectedBy>
+        <TypeName>Module</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>"&lt;h3 class='ui-widget-header' itemprop='name'&gt;$($_.Name)&lt;/h3&gt;
+    $(    
+    if ($_.Description -and 
+        $_.Description -ne $_.Name -and
+        $_.Description -ne $_.ArticleText) {
+        "&lt;div class='Description' itemprop='Description' style='text-align:left'&gt;$($_.Description)&lt;/div&gt;"
+    }
+    "&lt;br/&gt;"
+    if ($_.Url) {
+        if (-not $_.ArticleText) {
+            Write-Link -Button -Url $_.Url -Caption "&lt;span class='ui-icon ui-icon-extlink'&gt;
+                &lt;/span&gt;
+                &lt;br/&gt;
+                &lt;span style='text-align:center'&gt;
+                Visit Website
+                &lt;/span&gt;"
+            
+        }
+        "&lt;meta style='display:none' content='$($_.Url)' itemprop='url' /&gt;"
+    }
+    if ($_.Author) {
+        "&lt;meta style='display:none' itemprop='author' content='$($_.Author)' /&gt;"
+        if ($_.Author -like "@*") {
+            "By $($_.Author) - $(Write-Link ('twitter:follow' + $_.Author))"
+        } else {
+            "By $($_.Author)"
+        }
+    }    
+    if ($_.Image) {    
+        Write-Link -Caption "&lt;img border='0' src='$($_.Image)' /&gt;" -Simple -Url $_.Url
+        "&lt;meta style='display:none' content='$($_.Image)' itemprop='image'&gt;"
+    }
+    if ($_.Image -or $_.Url) {
+        '&lt;br /&gt;'
+    }
+    )
+    "</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+    <View>
+      <Name>Example</Name>
+      <ViewSelectedBy>
+        <TypeName>Example</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>"&lt;h3 class='ui-widget-header' itemprop='name'&gt;$($_.Name)&lt;/h3&gt;    
+    &lt;div itemprop='description'&gt;
+    $($sb = [ScriptBlock]::Create($_.Description); Write-ScriptHTML -Text $sb)
+    &lt;/div&gt;"</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+    <View>
+      <Name>WolframAlphaResult</Name>
+      <ViewSelectedBy>
+        <TypeName>WolframAlphaResult</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>
+    if ($Request ) {
+        $item = $_
+        $podHtml = 
+            $_.psobject.properties |             
+                ForEach-Object {
+                    if ('Pods','OutputXml','InputInterpretation', 'PSComputerName', 'RunspaceId' -contains $_.Name) {
+                        return
+                    }
+                    
+                    "$($_.Name)&lt;br/&gt;
+                    &lt;blockquote&gt;                        
+                        $(
+                            $val = $_.Value
+                            if ($val -like "http://*image*") {
+                                "&lt;img src='$val' style='border:0' /&gt;" | Out-HTML
+                            } else {
+                                $val | Out-HTML
+                            }
+                            
+                        )
+                    &lt;/blockquote&gt;"                    
+                }
+        "
+        $($item.InputInterpretation)
+        &lt;blockquote&gt;
+            $podHtml    
+        &lt;/blockquote&gt;
+        "    
+    } else {
+        Write-Host "Input :" $_.InputInterpretation
+        
+        $_.psobject.properties |             
+            ForEach-Object {
+                if ('Pods','OutputXml','InputInterpretation', 'PSComputerName', 'RunspaceId' -contains $_.Name) {
+                    return
+                }
+                $displayName = $_.Name
+                Write-Host $displayName
+                $content = $_.Value | Out-String    
+                $newContent = $content -split "[$([Environment]::NewLine)]" |
+                    Where-Object { $_ } |
+                    ForEach-Object { 
+                        "    " + $_
+                    }
+                Write-Host ($newContent -join ([Environment]::NewLine))
+            }
+    }
+    $null
+</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+    <View>
+      <Name>http://schema.org/ContactPoint</Name>
+      <ViewSelectedBy>
+        <TypeName>http://schema.org/ContactPoint</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>"
+&lt;h3 class='ui-widget-header' itemprop='name'&gt;$($_.Name)&lt;/h3&gt;
+$(
+if ($_.ContactType){
+"&lt;span itemprop='contactType' class='contactType'&gt;$($_.ContactType)&lt;/span&gt;&lt;br/&gt;"
+}
+if ($_.Email){
+"&lt;a href='mailto:$($_.Email)' itemprop='email' class='contactEmail'&gt;$($_.Email)&lt;/a&gt;&lt;br/&gt;"
+}
+if ($_.Telephone){
+"Phone: &lt;span itemprop='telephone' class='contactPhone'&gt;$($_.Telephone)&lt;/span&gt;&lt;br/&gt;"
+}
+if ($_.FaxNumber){
+"Phone: &lt;span itemprop='telephone' class='contactPhone'&gt;$($_.Telephone)&lt;/span&gt;&lt;br/&gt;"
+}
+)
+"</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+    <View>
+      <Name>http://schema.org/Articlehttp://schema.org/NewsArticlehttp://schema.org/BlogPosting</Name>
+      <ViewSelectedBy>
+        <TypeName>http://schema.org/Article</TypeName>
+        <TypeName>http://schema.org/NewsArticle</TypeName>
+        <TypeName>http://schema.org/BlogPosting</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>
+    # Calculate the depth of the virtual URL compared to the real page. 
+    # This gets used to convert links to local resources, such as a custom JQuery theme
+    $depth = 0
+    if ($context -and $context.Request.ServerVariables["HTTP_X_ORIGINAL_URL"]) {
+    
+        $originalUrl = $context.Request.ServerVariables["HTTP_X_ORIGINAL_URL"]
+
+        $pathInfoUrl = $request.Url.ToString().Substring(0, $request.Url.ToString().LastIndexOf("/"))
+                
+            
+            
+        $pathInfoUrl = $pathInfoUrl.ToLower()
+        $protocol = ($request['Server_Protocol'] -split '/')[0]  # Split out the protocol
+        $serverName= $request['Server_Name']                     # And what it thinks it called the server
+
+        $fullOriginalUrl = $protocol.ToLower() + "://" + $serverName + $request.Params["HTTP_X_ORIGINAL_URL"]
+        $FullUrl = $fullOriginalUrl
+        $relativeUrl = $fullOriginalUrl.Replace("$pathInfoUrl", "")            
+       
+        if ($relativeUrl -like "*/*") {
+            $depth = @($relativeUrl -split "/" -ne "").Count - 1
+            if ($depth -eq 0) { $depth = 1 } 
+        } else {
+            $depth  = 0
+        }
+        
+    }
+    
+    $item = $_
+
+    $itemUrl = 
+    if ($item.Url) {
+        $item.Url
+    } elseif ($item.Link) {
+        $item.Link
+    }
+    $typeName = @($item.pstypenames)[-1].TrimStart("Deserialized.")
+    "
+&lt;div itemscope='' itemtype='$typeName'&gt;
+&lt;h1 class='ui-widget-header' itemprop='name'&gt;$(
+    if ($_.Name -and $itemUrl) {
+        "&lt;a href='$($itemUrl)' itemprop='url'&gt;$($_.Name)&lt;/a&gt;"
+    } elseif ($_.Name) {
+        $_.Name
+    } elseif ($_.Title -and $itemUrl) {
+         "&lt;a href='$($itemUrl)' itemprop='url'&gt;$($_.Title)&lt;/a&gt;"
+    } elseif ($_.Title) {
+        $_.Title
+    }
+)&lt;/h1&gt;
+&lt;span style='display:none' itemprop='name'&gt;$($_.Name)&lt;/span&gt;
+&lt;br style='line-height:300%;clear:both' /&gt;
+    $(
+    if ($_.Url) {
+        if (-not $_.ArticleText -and -not $_.ArticleBody) {
+            Write-Link -Button -Url $_.Url -Caption "&lt;span class='ui-icon ui-icon-extlink'&gt;
+                &lt;/span&gt;
+                &lt;br/&gt;
+                &lt;span style='text-align:center'&gt;
+                From $(
+                    $urlHost=([uri]$_.Url).DnsSafeHost
+                    if ($urlHost){
+                        $urlHost.Replace('www.', '')
+                    } else {
+                        $_.Url
+                    }
+                )
+                &lt;/span&gt;"
+            
+        }
+        "&lt;meta style='display:none' content='$($_.Url)' itemprop='url' /&gt;"
+    }
+    if ($_.Author -and -not $_.NoByline) {        
+        "&lt;meta style='display:none' itemprop='author' content='$($_.Author)' /&gt;"
+        if (-not $_.NoByline) {            
+            if ($_.Author -like "@*") {
+                "By $($_.Author) - $(Write-Link ('twitter:follow' + $_.Author))"
+            } else {
+                "By $($_.Author)"
+            }
+        }
+    }
+    if ($_.DatePublished) {
+        "&lt;meta style='display:none' itemprop='datePublished' content='$($_.DatePublished)' /&gt;"                    
+        if (-not $_.NoByline) {
+            "Published $(($_.DatePublished -as [DateTime]).ToLongDateString())"        
+        }
+
+    }
+        
+    if ($_.Image) {    
+        Write-Link -Caption "&lt;img border='0' src='$($_.Image)' /&gt;" -Simple -Url $_.Url
+        "&lt;meta style='display:none' content='$($_.Image)' itemprop='image'&gt;"
+    }
+    if ($_.Image -or $_.Url) {
+        '&lt;br /&gt;'
+    }
+    if ($_.Description -and 
+        $_.Description -ne $_.Name -and
+        $_.Description -ne $_.ArticleText -and
+        $_.Description -ne $_.ArticleBody) {
+        "&lt;div class='Description' itemprop='Description' style='text-align:left'&gt;$($_.Description)&lt;/div&gt;"
+    }
+    if ($_.ArticleBody -and $_.ArticleBody -ne $_.Name) {
+        "&lt;div class='ArticleBody' itemprop='ArticleBody' style='text-align:left'&gt;$($_.ArticleBody)&lt;/div&gt;"
+    } elseif ($_.ArticleText -and $_.ArticleText -ne $_.Name) {
+        "&lt;div class='ArticleText' itemprop='ArticleText' style='text-align:left'&gt;$($_.ArticleText)&lt;/div&gt;"
+    } elseif ($_.CompressedArticleBody) {
+        $expandedArticleBody = Expand-Data -CompressedData $_.CompressedArticleBody -ErrorAction SilentlyContinue
+        "&lt;div class='ArticleText' itemprop='ArticleText' style='text-align:left'&gt;$expandedArticleBody&lt;/div&gt;"
+    }
+    
+    if ((-not $_.Url) -and $pipeworksManifest.Blog.Name) {
+        "&lt;div style='text-align:right'&gt;" + (
+        Write-Link -Style @{'font-size'='xx-small'} -Button -Url "$('../' * $depth)?Post=$([Web.HttpUtility]::UrlEncode($_.Name))" -Caption "&lt;span class='ui-icon ui-icon-extlink'&gt;
+        &lt;/span&gt;
+        &lt;br/&gt;
+        &lt;span style='text-align:center'&gt;
+        Permalink
+        &lt;/span&gt;") + "&lt;/div&gt;" + "&lt;meta style='display:none' itemprop='url' content='$('../' * $depth)?Post=$([Web.HttpUtility]::UrlEncode($_.Name))' /&gt;"        
+    }    
+    if ($pipeworksManifest.Facebook.AppId) {
+        "&lt;div class='fb-like' data-send='true' data-width='450' data-show-faces='true'&gt;&lt;/div&gt; &lt;BR/&gt;" + 
+            "&lt;div class='fb-comments' data-href='$(if ($FullUrl) { $fullUrl } else { $request.Url  })' data-num-posts='2' data-width='470'&gt;&lt;/div&gt;"
+                                
+    }
+    
+    if ($item.Keyword) {
+        $keywordChunk = @(
+            $keywordurls = @($item.KeywordUrl)
+            $keyword = @($item.Keyword)
+
+            for ($i= 0;$i-lt $keyword.Count;$i++) {
+                if ($keyword[$i] -and $keywordurls[$i]) {
+                    "&lt;a href='$($keywordUrls[$i])'&gt;&lt;span itemprop='keyword'&gt;$($keyword[$i])&lt;/span&gt;&lt;/a&gt;"
+                } else {
+                    "&lt;span itemprop='keyword'&gt;" + $keyword[$i] + "&lt;/span&gt;"
+                }
+            }
+        ) -join '&lt;br/&gt;'
+        "&lt;div style='float:right;font-size:1.11em;text-align:right'&gt;$keywordChunk&lt;/div&gt;&lt;br style='clear:both'/&gt;" 
+        
+    } 
+        
+        
+    
+    
+    
+
+    )
+    &lt;/div&gt;
+    "    
+        
+    
+</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+    <View>
+      <Name>http://schema.org/VideoObjecthttp://schema.org/ImageObjecthttp://schema.org/MediaObject</Name>
+      <ViewSelectedBy>
+        <TypeName>http://schema.org/VideoObject</TypeName>
+        <TypeName>http://schema.org/ImageObject</TypeName>
+        <TypeName>http://schema.org/MediaObject</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>
+    $linkType = if ("http://schema.org/VideoObject" -eq @($_.pstypenames)[-1].TrimStart("Deserialized.")) {
+        "play"
+    } else {
+        "extlink"
+    }
+    $media = $_
+    
+    $fromString = if ($_.Publisher) {
+        $_.Publisher
+    } elseif ($_.From) {
+        $_.From
+    }
+    
+    
+    if ($fromString) {
+        $fromString=  "- $fromString"
+    }
+
+
+
+    $width = 320
+    $height = 240
+
+    if ($_.Width) {
+        $width = "$($_.Width)".Trim("px") -as [double]
+        $height = "$($_.Height)".Trim("px") -as [double]
+    }
+    
+    "
+    $(if ($media.Url -notlike "*.youtube.com") {
+    
+   
+        if ($_.Name) {
+            "&lt;h3 class=`'ui-widget-header`' itemprop=`'name`'&gt;$($_.Name) $fromString&lt;/h3&gt;"
+        }
+    
+           
+        if ($_.Image) {
+            "&lt;p style='text-align:center'&gt;" + (    
+            Write-Link -Caption "&lt;img border='0' style='width:${width}px;height:${height}px' src='$($_.Image)' /&gt;" -Url $_.Image) + "&lt;/p&gt;"
+            "&lt;meta style='display:none' content='$($_.Image)' itemprop='image'&gt;"
+        } elseif ($_.ThumbnailUrl) {
+            "&lt;p style='text-align:center'&gt;" + (
+            Write-Link -Caption "&lt;img border='0' style='width:${width}px;height:${height}px' src='$($_.ThumbnailUrl)' /&gt;" -Url $_.ThumbnailUrl) + "&lt;/p&gt;"
+            "&lt;meta style='display:none' content='$($_.ThumbnailUrl)' itemprop='image'&gt;"
+        } elseif ($_.Thumbnail) {
+            "&lt;p style='text-align:center'&gt;" + (
+            Write-Link -Caption "&lt;img border='0' style='width:${width}px;height:${height}px' src='$($_.Thumbnail)' /&gt;" -Url $_.Thumbnail) + "&lt;/p&gt;"
+            "&lt;meta style='display:none' content='$($_.Thumbnail)' itemprop='image'&gt;"
+        } elseif ($_.AssociatedMedia) {
+            "&lt;p style='text-align:center'&gt;" + (
+            Write-Link -Caption "&lt;img border='0' style='width:${width}px;height:${height}px' src='$($_.AssociatedMedia)' /&gt;" -Url $_.AssociatedMedia) + "&lt;/p&gt;"
+            "&lt;meta style='display:none' content='$($_.AssociatedMedia)' itemprop='image'&gt;"
+        } 
+    })
+    $(if ($_.Url) {
+        if ("http://schema.org/ImageObject" -eq @($_.pstypenames)[-1].TrimStart("Deserialized.")) {
+            "&lt;p style='text-align:center'&gt;" + (
+                Write-Link -Caption "&lt;img border='0' style='width:${width}px;height:${height}px' src='$($_.Url)' /&gt;" -Url $_.Url) + "&lt;/p&gt;"
+            "&lt;meta style='display:none' content='$($_.Url)' itemprop='url'&gt;"            
+        } else {
+            "&lt;p style='text-align:center'&gt;" + (Write-Link -Button -Url $_.Url -Caption "&lt;span class='ui-icon ui-icon-$linkType'&gt; &lt;/span&gt;") + "&lt;/p&gt;"
+            "&lt;meta style='display:none' content='$($_.Url)' itemprop='url'&gt;"
+        }
+        
+        
+    })    
+    $(if ($_.Image -or $_.Url) {
+        '&lt;br /&gt;'
+    }) 
+    $(if ($_.Caption) {
+        ('&lt;br /&gt;' + $_.Caption + '&lt;br /&gt;')
+    })
+    $(if ($_.CopyrightHolder) {
+        ('&lt;br /&gt; &amp;copy; ' + $_.CopyrightHolder + '&lt;br /&gt;')
+    })  
+    $(if ($_.Description -and $_.Description -ne $_.Name) {
+        "&lt;div class='Description' itemprop='Description' style='text-align:left'&gt;$($_.Description)&lt;/div&gt;"
+    }
+
+    $(if ($pipeworksManifest.Facebook.AppId) {
+        "&lt;div class='fb-like' data-send='true' data-width='450' data-show-faces='true'&gt;&lt;/div&gt; &lt;BR/&gt;" + 
+            "&lt;div class='fb-comments' data-href='$(if ($FullUrl) { $fullUrl } else { $request.Url  })' data-num-posts='2' data-width='470'&gt;&lt;/div&gt;"
+                                
+    })
+
+    )
+        
+    "</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+    <View>
+      <Name>ColorizedScript</Name>
+      <ViewSelectedBy>
+        <TypeName>ColorizedScript</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>
+    if ($Request ) {
+        Write-ScriptHTML -Text $_
+    } else {
+        $_
+    }
+</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+    <View>
+      <Name>http://schema.org/Event</Name>
+      <ViewSelectedBy>
+        <TypeName>http://schema.org/Event</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>"
+&lt;div class='product'&gt;
+&lt;h3 class='ui-widget-header' itemprop='name'&gt;$($_.Name)&lt;/h3&gt;
+&lt;p class='ProductDescription'&gt;
+$(if ($_.Image) { "&lt;img class='product-image' src='$($_.Image)' align='right' /&gt;"})    
+&lt;span itemprop='description'&gt;$($_.Description)&lt;/span&gt;
+
+&lt;/p&gt;
+$(
+if ($_.Performers){
+    if ($_.Performers -is [string]) {
+        "&lt;span itemprop='performers' class='eventPerformer'&gt;$($_.Performers)&lt;/span&gt;&lt;br/&gt;"    
+    } else {
+        $_.Performers | Out-String -Width 1kb
+    }
+}
+if ($_.Location){
+    if ($_.Location -is [string]) {
+        "&lt;span itemprop='location' class='eventLocation'&gt;$($_.Location)&lt;/span&gt;&lt;br/&gt;"    
+    } else {
+        $_.Location | Out-String -Width 1kb
+    }
+}
+if ($_.StartDate){
+    "&lt;meta style='display:none' itemprop='startDate' content='$(([DateTime]$_.StartDate).ToString('r'))' /&gt;
+    $($_.StartDate | Out-String)
+    &lt;br/&gt;
+    "    
+}
+if ($_.EndDate){
+    "&lt;meta style='display:none' itemprop='endDate' content='$(([DateTime]$_.EndDate).ToString('r'))' /&gt;
+    $($_.EndDate | Out-String)
+    &lt;br/&gt;
+    "   
+}
+if ($_.Offers) {
+    foreach ($o in $_.Offers) {
+        $doubleO = $o -as [Double]        
+        if ($doubleO) {
+            "&lt;span class='product-price' itemprop='offer'&gt;${doubleO}&lt;/span&gt;"
+        } else {
+            $o | Out-String
+        }
+    }        
+}
+if ($pipeworksManifest -and $PipeworksManifest.GoogleMerchantId) {
+'&lt;div role="button" alt="Add to cart" tabindex="0" class="googlecart-add-button"&gt;
+&lt;/div&gt;'
+})
+&lt;/div&gt;"</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+    <View>
+      <Name>Amazon.EC2.Model.Image</Name>
+      <ViewSelectedBy>
+        <TypeName>Amazon.EC2.Model.Image</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>
+    $obj = $_
+    if ($obj.Name) { 
+        Write-Host $obj.Name -NoNewline
+        
+    } else {
+        Write-Host $obj.ImageLocation -NoNewline
+    }
+
+    Write-Host (" :$($obj.ImageId)")
+
+    Write-Host ' ' 
+    if ($obj.Description) {
+        Write-Host $obj.Description
+    }
+    return $null    
+</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+    <View>
+      <Name>http://shouldbeonschema.org/Class</Name>
+      <ViewSelectedBy>
+        <TypeName>http://shouldbeonschema.org/Class</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>
+    $item = $_
+    
+    $itemHtml = @"
+&lt;h1 class="page-title"&gt;     
+    &lt;a href='$($item.Url)' class='shouldbelink' itemprop='name'&gt;$($item.Name)&lt;/a&gt;
+&lt;/h1&gt;
+"@
+    if ($item.Description) {
+        $itemHtml += @"
+&lt;span itemprop='description'&gt;
+    $($item.Description)
+&lt;/span&gt;
+"@        
+    }
+          
+    
+    $itemHtml += @"
+&lt;style&gt;
+
+    table.definition-table
+    {
+        margin: 1em 0 0 0;
+        border: 1px solid #98A0A6;
+    }
+    .definition-table th
+    {
+        text-align: left;
+        background: #C7CBCE;
+        padding-left: 5px;
+    }
+    .definition-table td
+    {
+        padding: 0 5px 2px 5px;
+        margin: 0;
+        vertical-align: top;
+    }
+    .definition-table td p
+    {
+        padding: 0 0 .6em 0;
+        margin: 0;
+    }
+    .definition-table td ul
+    {
+        padding-top: 0;
+        margin-top: 0;
+    }
+    .definition-table tr.alt
+    {
+        background: #E9EAEB;
+    }
+    .h .space
+    {
+        width: 20px
+    }
+    .h .bar
+    {
+        background-color: #000;
+        width: 1px
+    }
+    .h .tc
+    {
+        text-indent: -21px;
+        padding-left: 21px
+    }
+&lt;/style&gt;
+&lt;table cellspacing="3" class="definition-table SchemaContent" &gt;
+    &lt;thead&gt;
+        &lt;tr&gt;
+            &lt;th&gt;Property&lt;/th&gt;
+            &lt;th&gt;Type&lt;/th&gt;
+            &lt;th&gt;Description&lt;/th&gt;
+        &lt;/tr&gt;
+    &lt;/thead&gt;
+"@
+
+
+    $itemClassId = if ($item.Url) {
+        $item.Url
+    } else {
+        $item.Name
+    }
+    $classHierarchy  =@($item.ParentClass) + $itemClassId
+    foreach ($parentClass in $classHierarchy) {
+        if (-not $parentClass) { continue }
+        
+        
+        $declaringTypeString = 
+            if ($parentClass.Url) {
+                if ($parentClass.Url -like "*http*") {
+                    "&lt;a href='$($parentClass.Url)'&gt;$(([uri]$ParentClass.Url).Segments[-1].TrimEnd("/"))&lt;/a&gt;"
+                } else {
+                    "&lt;a href='$($ParentClass.Url)'&gt;$($ParentClass.Url)&lt;/a&gt;"
+                }
+                
+            } elseif ($parentClass.Name) {
+                "$($ParentClass.Name)"
+            } elseif ($parentClass -like "*http*") {
+                "&lt;a href='$($parentClass)'&gt;$(([uri]$ParentClass).Segments[-1].Trim("/"))&lt;/a&gt;"
+            } else {
+                $parentClass
+            }
+            
+        $itemHtml += $item.Property |
+            Where-Object { 
+                if ($_.DeclaringType) { 
+                    $_.DeclaringType -and (
+                        $_.DeclaringType -eq $parentClass -or
+                        $_.DeclaringType -eq $parentClass.Url -or
+                        $_.DeclaringType -eq $parentClass.Name -or 
+                        $declaringTypeString -eq $parentClass.Name
+                    )                 
+                } else {
+                    $parentClass -eq $itemClassId
+                }
+            } |
+            ForEach-Object -Begin {                
+@"
+
+    &lt;thead class="supertype"&gt;&lt;tr&gt;
+        &lt;th class="supertype-name" colspan="3"&gt;
+            Properties from $declaringTypeString&lt;/th&gt;
+        &lt;/tr&gt;
+    &lt;/thead&gt;
+    &lt;tbody class="supertype"&gt;
+"@                
+            } -Process {
+                $property = $_
+                
+                $typeChunk = 
+                    if ($property.PropertyType -like "http://*") {
+                        
+                        "&lt;a href='$($property.PropertyType)' itemprop='PropertyType'&gt;$(([uri]$property.PropertyType).Segments[-1])&lt;/a&gt;"   
+                    } elseif ($property.PropertyType -is [string]) {
+                        
+                        "$($property.PropertyType)
+                        &lt;meta style='display:none' itemprop='PropertyType' content='Text' /&gt;
+                        "
+                        
+                    } else {
+                        "Text
+                        &lt;meta style='display:none' itemprop='PropertyType' content='Text' /&gt;
+                        "
+                    }
+                @"
+    &lt;tr itemscope='' itemprop='Property' itemtype='http://shouldbeonschema.org/Property'&gt;
+        &lt;th class="prop-nam" scope="row"&gt;
+            &lt;code itemprop='Name'&gt;$($property.Name)&lt;/code&gt;
+        &lt;/th&gt;
+        &lt;td class="prop-ect"&gt;
+            $typeChunk
+        &lt;/td&gt;
+        &lt;td class="prop-desc" itemprop='Description'&gt;
+            $($property.Description)
+        &lt;/td&gt;
+    &lt;/tr&gt; 
+"@
+            } -End {
+@"
+    &lt;/tbody&gt;
+"@
+            }
+            
+            
+        
+    }
+    $itemHtml += @"    
+&lt;/table&gt;
+
+"@
+
+
+
+    "
+&lt;div itemscope='' itemtype='http://shouldbeonschema.org/Class' style='margin:0;padding:0'&gt;
+    $itemHtml
+&lt;/div&gt;
+    " 
+</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+    <View>
+      <Name>http://shouldbeonschema.org/Topic</Name>
+      <ViewSelectedBy>
+        <TypeName>http://shouldbeonschema.org/Topic</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>
+    $page = ""
+    $item = $_
+    $depth = 0
+    $fullOriginalUrl  = $request.Url
+    if ($context -and $context.Request.ServerVariables["HTTP_X_ORIGINAL_URL"]) {
+    
+        $originalUrl = $context.Request.ServerVariables["HTTP_X_ORIGINAL_URL"]
+
+        $pathInfoUrl = $request.Url.ToString().Substring(0, $request.Url.ToString().LastIndexOf("/"))
+                
+            
+            
+        $pathInfoUrl = $pathInfoUrl.ToLower()
+        $protocol = ($request['Server_Protocol'] -split '/')[0]  # Split out the protocol
+        $serverName= $request['Server_Name']                     # And what it thinks it called the server
+
+        $fullOriginalUrl = $protocol.ToLower() + "://" + $serverName + $request.Params["HTTP_X_ORIGINAL_URL"]
+        
+        $relativeUrl = $fullOriginalUrl.Replace("$pathInfoUrl", "")            
+       
+        if ($relativeUrl -like "*/*") {
+            $depth = @($relativeUrl -split "/" -ne "").Count - 1
+            if ($depth -eq 0) { $depth = 1 } 
+        } else {
+            $depth  = 0
+        }
+        
+    }
+    if ($item.Content) {
+            
+        $content = if (-not $item.Content.Contains(" ")) {
+            # Treat compressed
+            Expand-Data -CompressedData $item.Content
+        } else {
+            $item.Content
+        }
+        $content = if (-not $Content.Contains("&lt;")) {
+            # Treat as markdown
+            ConvertFrom-Markdown -Markdown $content 
+        } else {
+            # Treat as HTML
+            $content
+        }
+        $hasContent = $true
+        $page += $content            
+    }
+        
+                                        
+        
+    if ($item.Video) {
+        $hasContent = $true
+        $page += "&lt;br/&gt;$(Write-Link $item.Video)&lt;br/&gt;&lt;br/&gt;" | New-Region -Style @{'text-align'='center'} 
+        
+    }
+        
+    if ($item.ItemId) {
+        $hasContent = $true
+        $part,$row = $item.ItemId -split ":"
+        $page += Get-AzureTable -TableName $table -Partition $part -Row $row |
+            ForEach-Object $unpackItem|
+            Out-HTML -ItemType { 
+                $_.pstypenames | Select-Object -Last 1                     
+            } 
+    }                
+        
+    
+        
+    if ($item.Related) {
+        $hasContent = $true
+        $page += 
+            ((ConvertFrom-Markdown -Markdown $item.Related) -replace "\&lt;a href", "&lt;a class='RelatedLink' href") |
+                New-Region -Style @{'text-align'='right';'padding'='10px'} 
+        $page += @'
+&lt;script&gt;
+$('.RelatedLink').button()
+&lt;/script&gt;
+'@            
+        
+    }
+    if ($item.Next -or $item.Previous) {
+        $hasContent = $true
+        $previousChunk = 
+            if ($item.Previous) {
+            $previousCaption = "&lt;span class='ui-icon ui-icon-seek-prev'&gt;
+                &lt;/span&gt;
+                &lt;br/&gt;
+                &lt;span style='text-align:center'&gt;
+                Last
+                &lt;/span&gt;"
+
+                Write-Link -Caption $previousCaption -Url $item.Previous -Button
+            } else {
+                ""
+            }
+            
+        $nextChunk = 
+            if ($item.Next) {
+                $nextCaption = "&lt;span class='ui-icon ui-icon-seek-next'&gt;
+                    &lt;/span&gt;
+                    &lt;br/&gt;
+                    &lt;span style='text-align:center'&gt;
+                    Next
+                    &lt;/span&gt;"
+                    Write-Link -Caption $nextCaption -Url $item.Next -Button
+            } else {
+                ""
+            }
+        $page+= "
+&lt;table style='width:100%'&gt;
+    &lt;tr&gt;
+        &lt;td style='50%;text-align:left'&gt;
+            $previousChunk
+        &lt;/td&gt;
+        &lt;td style='50%;text-align:right'&gt;
+            $nextChunk
+        &lt;/td&gt;
+    &lt;tr&gt;
+&lt;/table&gt;"            
+    }
+    
+    if ($item.Subtopic) {
+    
+    }
+        
+
+    if (-not $hasContent) {
+        $page += $item | 
+                Out-HTML -ItemType { $_.pstypenames | Select-Object -Last 1 } 
+    }
+    
+
+    if ($pipeworksManifest.Facebook.AppId) {
+        $page += "&lt;div class='fb-like' data-send='true' data-width='450' data-show-faces='true'&gt;&lt;/div&gt; &lt;BR/&gt;" + 
+            "&lt;div class='fb-comments' data-href='$fullOriginalUrl' data-num-posts='2' data-width='470'&gt;&lt;/div&gt;"
+                                
+    }
+
+    $page
+
+</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+    <View>
+      <Name>http://schema.org/Product</Name>
+      <ViewSelectedBy>
+        <TypeName>http://schema.org/Product</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>
+
+
+
+$item = $_
+
+$productImage = if ($item.Image) {
+    if (@($item.Image).Count -gt 1) {
+        foreach ($img in $item.Image) {
+            "&lt;img class='product-image' src='$($img)' style='float:right' /&gt;
+            &lt;br style='clear:both' /&gt;"
+        }
+    } else {
+        "&lt;img class='product-image' src='$($item.Image)' style='float:right' /&gt;"
+    }
+} elseif ($item.ImageUrls) {
+    foreach ($img in $item.ImageUrls) {
+        foreach ($splitImg in ($img -split ' ' -ne '')) {
+            "&lt;img class='product-image' src='$($splitImg)' style='float:right' /&gt;
+            &lt;br style='clear:both' /&gt;"
+        }
+    }
+} elseif ($item.Image_Urls) {
+    foreach ($img in $item.Image_Urls) {
+        foreach ($splitImg in ($img -split ' ' -ne '')) {
+            "&lt;img class='product-image' src='$($splitImg)' style='float:right' /&gt;
+            &lt;br style='clear:both' /&gt;"
+        }
+    }
+} else {
+    $null
+
+}
+
+$productName = if ($item.Name) {
+    $item.Name
+} elseif ($item.Product_Name) {
+    $item.Product_Name
+} else {
+    ""
+}
+
+
+$hideBrandIfRedundant =  if ($productName -and 
+    $item.Brand -and
+    $productName.ToLower().StartsWith($item.Brand.Tolower())) {
+    "display:none"
+} else {
+    ""
+}
+
+"
+&lt;div class='product' itemscope='' itemtype='http://schema.org/Product'&gt;
+    &lt;h2 class=`'ui-widget-header`'&gt;
+    $(if ($item.Url) { "&lt;a href='$($item.Url)' itemprop='url'&gt;"})
+    $(if ($item.Brand -and -not $hideBrandIfRedunant) {"&lt;span itemprop='brand' style='$hideBrandIfRedunant'&gt;$($_.Brand)&lt;/span&gt;" })    
+    &lt;span class='product-title' itemprop=`'name`'&gt;$productName&lt;/span&gt;
+    $(if ($item.Url) { "&lt;/a&gt;"})&lt;/h2&gt;
+    $(if ($item.Manufacturer) {"by &lt;span style='font-size:small' itemprop='manufacturer'&gt;$($_.Manufacturer)&lt;/span&gt; &lt;br/&gt;" })        
+    &lt;p class=`'ProductDescription`'&gt;
+    $(if ($productImage) { 
+        if (@($productImage).Count -gt 1) {
+            $layers = @{}
+            $layerOrder = @()
+            
+            foreach ($pi in $productImage) {
+                $layers["Layer$($layerOrder.Count + 1)"] = $pi
+                $layerOrder += "Layer$($layerOrder.Count + 1)"
+            }
+
+            if ($pipeworksManifest.UseBootstrap -or $pipeworksManifest.UseJQueryUI) {
+                New-Region -AsSlideShow -UseDotInsteadOfName -Layer $layers -Order $layerOrder -LayerID "ProductImage_$(Get-Random)" -Style @{
+                    'float' = 'right'
+                    'max-width' = '50%'
+                }
+            } else {        
+                $productImage -join ([Environment]::NewLine)}
+    
+        } else {
+            $productImage
+        }
+    })    
+    &lt;span itemprop=`'description`' &gt;$($_.Description)&lt;/span&gt;
+    
+    &lt;/p&gt;
+    $(
+    $itemPrice = 0
+    $offerList = @()
+    if ($item.Offers) {
+        foreach ($o in $item.offers) {
+            
+            $OLink = ''
+            $OLinkStart = ''
+            $OLinkEnd = ''
+            $doubleO = $o -as [Double]
+            if ($doubleO) {
+                $itemPrice= $doubleO                
+                "&lt;span class='product-price' itemprop='offer'&gt;${doubleO}&lt;/span&gt;"
+            } else {
+                
+                if ($o.Price -and $o.Name) {    
+                    if ($o.Url) {
+                    
+                        $OLinkStart = '&lt;a href="' + $o.Url + '"&gt;'
+                        $OLinkEnd = '&lt;/a&gt;'
+                    }
+                    $offerList += "&lt;tr&gt;&lt;td style='font-size:1.33em'&gt;$OLinkStart$($o.Price)$OLinkEnd&lt;/td&gt;"
+                    $offerList += "&lt;td style='font-size:1.66em'&gt;$OLinkStart$($o.Name)$OLinkEnd&lt;/td&gt;&lt;/tr&gt;"                       
+                }
+                
+            }
+        }        
+    }
+
+    if ($offerList) {
+        "&lt;table&gt;
+            $($offerList -join ([Environment]::NewLine))
+        &lt;/table&gt;"
+    }
+    
+    if ($itemPrice -and $pipeworksManifest -and $PipeworksManifest.PaymentProcessing.PaypalEmail) {
+        Write-Link -ItemName "$($item.Name)" -ItemPrice $itemPrice -PaypalEmail $PipeworksManifest.PaymentProcessing.PaypalEmail
+    }
+    
+    if ($itemPrice -and $pipeworksManifest -and $PipeworksManifest.AmazonPaymentsAccountId -and $PipeworksManifest.AmazonAccessKey ) {
+        Write-Link -ItemName "$($item.Name)" -ItemPrice $itemPrice -AmazonPaymentsAccountId $PipeworksManifest.AmazonPaymentsAccountId -AmazonAccessKey $PipeworksManifest.AmazonAccessKey
+    }
+
+    if ($itemPrice -and 
+        $pipeworksManifest -and 
+        $pipeworksManifest.PaymentProcessing.Stripe -and
+        $pipeworksManifest.PaymentProcessing.Stripe.PublishableKey -and
+        $pipeworksManifest.PaymentProcessing.Stripe.PrivateKeySetting) {
+            
+        if ($request["StripeToken"]) {
+            Get-Paid -StripeToken $request["StripeToken"] -StripeKeySetting $pipeworksManifest.PaymentProcessing.Stripe.PrivateKeySetting
+
+        } else {
+            Write-Link -ItemName "$($item.Name)" -ItemPrice $itemPrice -StripePublishableKey $pipeworksManifest.PaymentProcessing.Stripe.PublishableKey
+        }
+
+    }
+
+    if ($itemPrice -and $pipeworksManifest -and $PipeworksManifest.GoogleMerchantId) {
+    '&lt;div role="button" alt="Add to cart" tabindex="0" class="googlecart-add-button"&gt;
+    &lt;/div&gt;' + (Write-Link -ItemName "$($item.Name)" -ItemPrice $itemPrice -GoogleCheckoutMerchantId $PipeworksManifest.GoogleMerchantId)
+    }
+    
+    if ($itemPrice) {
+        '&lt;br/&gt;'
+    }            
+    
+
+    if ($item.Quantity) {
+        "
+        &lt;div style='float:right'&gt;
+            &lt;span style='font-size:1.33em' itemprop='Quantity'&gt;$($item.Quantity)&lt;/span&gt; In Stock
+        &lt;/div&gt;
+        &lt;br style='clear:both'&gt;
+        "
+    }
+    
+            
+    )
+&lt;/div&gt;
+"</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+    <View>
+      <Name>http://schema.org/UserInteraction</Name>
+      <ViewSelectedBy>
+        <TypeName>http://schema.org/UserInteraction</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>
+    $interaction = $_
+
+    "
+    &lt;div itemscope='' itemtype='http://schema.org/UserInteraction'&gt;
+        &lt;div style='float:left;font-size:1.33em'&gt;
+            $(if ($interaction.Count) {
+                $interaction.Count + " " 
+            })
+            $($interaction.Name)
+        &lt;/div&gt;                
+    &lt;/div&gt;
+    "
+
+</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+    <View>
+      <Name>http://schema.org/Thing</Name>
+      <ViewSelectedBy>
+        <TypeName>http://schema.org/Thing</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>
+    $thing= $_
+
+    "
+    &lt;div itemscope='' itemtype='http://schema.org/Thing'&gt;
+        &lt;div style='float:left;'&gt;            
+           
+            $(if ($thing.Url) {
+                Write-Link -Url $thing.Url -ItemProp url -Caption "&lt;span style='font-size:1.33em' itemprop='name'&gt;$($thing.Name)&lt;/span&gt;"
+            } else {
+                "&lt;span style='font-size:1.33em' itemprop='name'&gt;$($thing.Name)&lt;/span&gt;"
+            })
+            
+            
+        &lt;/div&gt;
+        $(if ($thing.Description) {
+            "&lt;div style='float:right' itemprop='description'&gt;
+                $($thing.Description)
+            &lt;/div&gt;"
+        })
+    &lt;/div&gt;
+    "
+
+</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+  </ViewDefinitions>
+</Configuration>

@@ -1,0 +1,1 @@
+If AsIntranetSite is set, the site will be published as an Intranet site.  Anonymous Authentication will be turned off, and Windows Authentication will be turned on.

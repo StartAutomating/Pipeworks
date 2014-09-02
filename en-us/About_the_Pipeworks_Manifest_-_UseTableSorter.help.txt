@@ -1,0 +1,1 @@
+If UseTableSorter is provided, the TableSorter JQuery plugin will be downloaded, and used on each page.

@@ -1,0 +1,1 @@
+The GoogleSiteVerification setting of the Pipeworks Manifest allows adds site verification tags for Google WebMaster Tools.  It also adds a +1 button to each page, until AntiSocial is specified.

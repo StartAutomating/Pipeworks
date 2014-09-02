@@ -1,0 +1,1 @@
+The keyword setting of the Pipeworks manifest contains a list of search keywords to add to each page of the site.

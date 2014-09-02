@@ -1,0 +1,4 @@
+The PrivacyPolicy setting of the Pipeworks manifest contains any legal privacy policy required.  If none is provided, a default privacy policy will be used.
+
+
+For an example of this default, visit [http://powershellpipeworks.com/?ShowPrivacyPolicy=true](http://powershellpipeworks.com/?ShowPrivacyPolicy=true)

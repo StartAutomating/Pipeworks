@@ -1,0 +1,2 @@
+If the Pipeworks Manifest includes the TwitterID setting, a follow for that TwitterID will be added to each page.  This setting can be overridden with .AntiSocial.
+

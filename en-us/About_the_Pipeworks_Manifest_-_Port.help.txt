@@ -1,0 +1,1 @@
+The Port setting of the Pipeworks manifest determines what port to use when publishing the site as an Intranet site.

@@ -1,0 +1,1 @@
+If UseJQueryUI is set to true in the Pipeworks manifest, JQueryUI will be used throughout the site.
