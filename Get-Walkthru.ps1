@@ -51,7 +51,7 @@ Get-Command
     # The script block used to generate a walkthru
     [Parameter(Mandatory=$true,
         ParameterSetName="ScriptBlock")]    
-    [ScriptBlock]$ScriptBlock
+    [ScriptBlock]$ScriptBlock    
     )
     
     begin {

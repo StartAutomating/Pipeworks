@@ -1,5 +1,5 @@
 @{
-    ModuleVersion = '1.9.9.4'
+    ModuleVersion = '1.9.9.41'
     ModuleToProcess = 'Pipeworks.psm1'
     FormatsToProcess = 'Pipeworks.Format.ps1xml'
     Copyright = 'Copyright 2012-2014 Start-Automating'

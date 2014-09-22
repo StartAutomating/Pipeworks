@@ -78,7 +78,15 @@
     # The path to a SQL compact or SQL lite database    
     [Alias('DBPath')]
     [string]
-    $DatabasePath
+    $DatabasePath,
+
+    # If set, will use MySql to connect to the database        
+    [Switch]
+    $UseMySql,
+    
+    # The path to MySql's .NET connector.  If not provided, MySql will be loaded from Program Files            
+    [string]    
+    $MySqlPath
     )
 
     begin {
@@ -143,7 +151,28 @@
                 # Open the DB
                 $sqlConnection.Open()
                 
-            } else {
+            }elseif ($useMySql) {
+                if (-not ('MySql.Data.MySqlClient.MySqlConnection' -as [type])) {
+                    if (-not $mySqlPath) {
+                        $programDir = if (${env:ProgramFiles(x86)}) {
+                            ${env:ProgramFiles(x86)}
+                        } else {
+                            ${env:ProgramFiles} 
+                        }
+                        $mySqlPath = Get-ChildItem "$programDir\MySQL\Connector NET 6.7.4\Assemblies\"| 
+                            Where-Object { $_.Name -like "*v*" } | 
+                            Sort-Object { $_.Name.Replace("v", "") -as [Version] } -Descending |
+                            Select-object -First 1 | 
+                            Get-ChildItem -filter "MySql.Data.dll" | 
+                            Select-Object -ExpandProperty Fullname
+                    }
+                    $asm = [Reflection.Assembly]::LoadFrom($MySqlPath)
+                    $null = $asm
+                    
+                }
+                $sqlConnection = New-Object MySql.Data.MySqlClient.MySqlConnection "$ConnectionString"
+                $sqlConnection.Open()
+            }  else {
                 # We're using SQL server (or SQL Azure), just use the connection string we've got
                 $sqlConnection = New-Object Data.SqlClient.SqlConnection "$connectionString"
                 # Open the DB
@@ -198,6 +227,11 @@
             } elseif ($UseSQLite) {
                 $sqliteCmd = New-Object Data.Sqlite.SqliteCommand $sqlStatement, $sqlConnection
                 $rowCount = $sqliteCmd.ExecuteNonQuery()
+            } elseif ($useMySql) {
+                $sqlAdapter= New-Object "MySql.Data.MySqlClient.MySqlDataAdapter" ($sqlStatement, $sqlConnection)
+                $sqlAdapter.SelectCommand.CommandTimeout = 0
+                $dataSet = New-Object Data.DataSet
+                $rowCount = $sqlAdapter.Fill($dataSet)
             } else {
                 $sqlAdapter= New-Object "Data.SqlClient.SqlDataAdapter" ($sqlStatement, $sqlConnection)
                 $sqlAdapter.SelectCommand.CommandTimeout = 0

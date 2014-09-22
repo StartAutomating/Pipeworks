@@ -127,7 +127,12 @@ Get-Help about_walkthruFiles
                 $null = $walkThruHtml.Append("<br/></p>")  
                 
                 if (("$($step.Script)".Trim())-and ("$($step.Script)".Trim() -ne '$null')) {
-                    $scriptHtml = Write-ScriptHTML -Text $step.Script 
+                    if ($step.Script -is [ScriptBlock]) {
+                        $scriptHtml = Write-ScriptHTML -Text $step.Script 
+                    } else {
+                        $scriptHtml = Write-ScriptHTML -Script $step.Script
+                    }
+                    
                     $null = $walkThruHtml.Append(@"
 <p class='ModuleWalkthruStep'>
 $scriptHtml

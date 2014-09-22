@@ -22,7 +22,7 @@
         } -AsAccordian
     .Example
         # Makes an empty region
-        New-Region -Style @{} -Content -LayerID MyId
+        New-Region -Style @{} -Content "My Layer" -LayerID MyId
     .Example
         # A Centered Region containing Microdata
         New-Region -ItemType http://schema.org/Event -Style @{
