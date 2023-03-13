@@ -51,31 +51,31 @@ Once you've done this, just open up PowerShell and run these three lines to crea
                 
 * [Write-ASPDotNetScriptPage](http://PowerShellPipeworks.com/Write-ASPDotNetScriptPage/)
 * [ConvertFrom-Markdown](http://PowerShellPipeworks.com/ConvertFrom-Markdown/)
-* [Making Editing Easier With Markdown](http://PowerShellPipeworks.com/Making Editing Easier With Markdown/)
+* [Making Editing Easier With Markdown](http://PowerShellPipeworks.com/Making%20Editing%20Easier%20With%20Markdown/)
 * [Write-ScriptHTML](http://PowerShellPipeworks.com/Write-ScriptHTML/)
-* [Making Tables with Out-HTML](http://PowerShellPipeworks.com/Making Tables with Out-HTML/)
-* [Working with Write-Link](http://PowerShellPipeworks.com/Working with Write-Link/)                
+* [Making Tables with Out-HTML](http://PowerShellPipeworks.com/Making%20Tables%20with%20Out-HTML/)
+* [Working with Write-Link](http://PowerShellPipeworks.com/Working%20with%20Write-Link/)                
                 
 #### Connecting the Clouds
                 
                 
-* [Get-Paid with Stripe](http://PowerShellPipeworks.com/Get-Paid with Stripe/)
-* [Getting GitIt](http://PowerShellPipeworks.com/Getting GitIt/)
-* [Get-Web Content From Anywhere](http://PowerShellPipeworks.com/Get-Web Content From Anywhere/)
-* [Pick up the Phone with Pipeworks](http://PowerShellPipeworks.com/Pick up the Phone with Pipeworks/)
-* [Implicit Texting with Twilio](http://PowerShellPipeworks.com/Implicit Texting with Twilio/)
-* [The Wonders of Wolfram Alpha](http://PowerShellPipeworks.com/The Wonders of Wolfram Alpha/)
-* [Using Azure Table Storage in Pipeworks](http://PowerShellPipeworks.com/Using Azure Table Storage in Pipeworks/)
-* [Simplified SQL](http://PowerShellPipeworks.com/Simplified SQL/)
-* [Building with Blob Storage](http://PowerShellPipeworks.com/Building with Blob Storage/)
-* [Publishing Pipeworks to Azure](http://PowerShellPipeworks.com/Publishing Pipeworks to Azure/)
-* [Looking Up Locations With Resolve-Location](http://PowerShellPipeworks.com/Looking Up Locations With Resolve-Location/)                
+* [Get-Paid with Stripe](http://PowerShellPipeworks.com/Get-Paid%20with%20Stripe/)
+* [Getting GitIt](http://PowerShellPipeworks.com/Getting%20GitIt/)
+* [Get-Web Content From Anywhere](http://PowerShellPipeworks.com/Get-Web%20Content%20From%20Anywhere/)
+* [Pick up the Phone with Pipeworks](http://PowerShellPipeworks.com/Pick%20up%20the%20Phone%20with%20Pipeworks/)
+* [Implicit Texting with Twilio](http://PowerShellPipeworks.com/Implicit%20Texting%20with%20Twilio/)
+* [The Wonders of Wolfram Alpha](http://PowerShellPipeworks.com/The%20Wonders%20of%20Wolfram%20Alpha/)
+* [Using Azure Table Storage in Pipeworks](http://PowerShellPipeworks.com/Using%20Azure%20Table%20Storage%20in%20Pipeworks/)
+* [Simplified SQL](http://PowerShellPipeworks.com/Simplified%20SQL/)
+* [Building with Blob Storage](http://PowerShellPipeworks.com/Building%20with%20Blob%20Storage/)
+* [Publishing Pipeworks to Azure](http://PowerShellPipeworks.com/Publishing%20Pipeworks%20to%20Azure/)
+* [Looking Up Locations With Resolve-Location](http://PowerShellPipeworks.com/Looking%20Up%20Locations%20With%20Resolve-Location/)                
                 
 #### Join Windows and Web
                 
                 
-* [Why Windows](http://PowerShellPipeworks.com/Why Windows/)
-* [Scripting with Superglue](http://PowerShellPipeworks.com/Scripting with Superglue/)
-* [Integrated Intranet](http://PowerShellPipeworks.com/Integrated Intranet/)
-* [Simpler SEO](http://PowerShellPipeworks.com/Simpler SEO/)                
+* [Why Windows](http://PowerShellPipeworks.com/Why%20Windows/)
+* [Scripting with Superglue](http://PowerShellPipeworks.com/Scripting%20with%20Superglue/)
+* [Integrated Intranet](http://PowerShellPipeworks.com/Integrated%20Intranet/)
+* [Simpler SEO](http://PowerShellPipeworks.com/Simpler%20SEO/)                
                 
