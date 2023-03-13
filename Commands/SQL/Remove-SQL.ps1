@@ -21,7 +21,7 @@
     param(
     # The table containing SQL results
     [Parameter(Mandatory=$true,Position=0,ValueFromPipelineByPropertyName=$true)]
-    [Alias('Table','From', 'Table_Name')]
+    [Alias('Table','From', 'Table_Name', 'FromTable')]
     [string]$TableName,
 
 
@@ -37,6 +37,11 @@
     # The name of the properties 
     [Parameter(Mandatory=$true,Position=2,ValueFromPipelineByPropertyName=$true,ParameterSetName='DeleteRowBatch')]
     [string]$PropertyName,
+
+    # A column name that will be dropped from the table.
+    [Parameter(Mandatory=$true,Position=1,ValueFromPipelineByPropertyName=$true,ParameterSetName='DeleteColumns')]
+    [Alias('Columns')]
+    [string[]]$Column,
 
     # If set, will clear the table's contents, but will not remove the table.
     [Parameter(Mandatory=$true,Position=1,ValueFromPipelineByPropertyName=$true,ParameterSetName='ClearTable')]
@@ -153,20 +158,12 @@
                 
             }elseif ($useMySql) {
                 if (-not ('MySql.Data.MySqlClient.MySqlConnection' -as [type])) {
-                    if (-not $mySqlPath) {
-                        $programDir = if (${env:ProgramFiles(x86)}) {
-                            ${env:ProgramFiles(x86)}
+                    $asm = 
+                        if (-not $mySqlPath) {
+                            [Reflection.Assembly]::LoadWithPartialName('MySql.Data')
                         } else {
-                            ${env:ProgramFiles} 
-                        }
-                        $mySqlPath = Get-ChildItem "$programDir\MySQL\Connector NET 6.7.4\Assemblies\"| 
-                            Where-Object { $_.Name -like "*v*" } | 
-                            Sort-Object { $_.Name.Replace("v", "") -as [Version] } -Descending |
-                            Select-object -First 1 | 
-                            Get-ChildItem -filter "MySql.Data.dll" | 
-                            Select-Object -ExpandProperty Fullname
-                    }
-                    $asm = [Reflection.Assembly]::LoadFrom($MySqlPath)
+                            [Reflection.Assembly]::LoadFrom($MySqlPath)
+                        }    
                     $null = $asm
                     
                 }
@@ -195,10 +192,10 @@
                 "DELETE FROM $tableName"
             } else { 
                 # Use Truncate Table on SQL Server
-                "TRUNACATE TABLE $tableName"
+                "TRUNCATE TABLE $tableName"
             }
                                     
-        } elseif ($tableNAme -and $wherein -and $PropertyName) {
+        } elseif ($tableName -and $wherein -and $PropertyName) {
             
             # We're deleting a batch of items, use WHERE ... IN                         
             $sqlStatement = 
@@ -207,6 +204,12 @@
                         $_.Replace("'", "''") 
                     })-join "','")')"
             
+        } elseif ($column) {
+            # We're dropping a column
+            $sqlStatement = @(foreach ($c in $column) {
+                "ALTER TABLE $TableName DROP COLUMN $c"
+            }) -join ([Environment]::NewLine)
+
         } else {
             
             # We're removing the whole table, use DROP TABLE
@@ -237,8 +240,8 @@
                 $sqlAdapter.SelectCommand.CommandTimeout = 0
                 $dataSet = New-Object Data.DataSet
                 $rowCount = $sqlAdapter.Fill($dataSet)
-
             }
+            Write-Verbose "$rowCount rows dropped or altered"
             #endregion Execute SQL Statement                                            
         }
         
