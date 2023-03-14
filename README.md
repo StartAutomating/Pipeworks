@@ -1,3 +1,7 @@
+<div align='center'>
+<img src='Assets/Pipeworks.svg' style='width:100%' />
+</div>
+
 Pipeworks is a framework for building and deploying sites and services with PowerShell and [PipeScript](https://github.com/StartAutomating/PipeScript).
 
 Pipeworks provides functions for frontend and backend development, and lets you build custom deployments with blueprints.
