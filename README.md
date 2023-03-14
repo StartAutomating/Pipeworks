@@ -4,14 +4,5 @@ Pipeworks provides functions for frontend and backend development, and lets you 
 
 Using Pipeworks, any PowerShell module or directory can easily become a site or service.
 
-## Pipeworks's Past
+The [Past](Pipeworks-Past.md), [Present](Pipeworks-Present.md), and [Future](Pipeworks-Future.md) of Pipeworks.
 
-Pipeworks was created in 2011 as one of the first PowerShell web frameworks.
-
-It's goal is reducing the time and effort required to turn any PowerShell module into Software as a Service.
-
-As there were few options available at the time, this required the creation of a quite frankly ludicrous amount of direct hosting of PowerShell and, thus, templating of other languages.
-
-## Pipeworks's Present
-
-## Pipeworks's Future
