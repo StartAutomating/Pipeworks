@@ -18,6 +18,10 @@
   <rect x="10%" width="2.5%" y="-195.5%" height="200%" fill="#4488ff" class="foreground-fill" />
   <rect x="90%" y="82.5%" height="2.5%" width="200%" fill="#4488ff" class="foreground-fill" />
   <rect x="90%" y="92.5%" height="2.5%" width="200%" fill="#4488ff" class="foreground-fill" />
-  <text x="48%" y="50%" text-anchor="middle" style="font-family:&quot;Inter&quot;, sans-serif" class="foreground-fill" fill="#4488ff" alignment-baseline="middle" font-size="9">Pipeworks</text>
+  <text x="48%" y="50%" text-anchor="middle" dominant-baseline="middle" style="font-family:&quot;Inter&quot;, sans-serif" class="foreground-fill" fill="#4488ff" alignment-baseline="middle" font-size="9">
+    <tspan font-size="1em">P</tspan>
+    <tspan font-size=".4em" dx="-.6em">|</tspan>
+    <tspan font-size="1em" dx="-.2em">peworks</tspan>
+  </text>
   <use href="#psChevron" height="9%" y="45.5%" x="25%" opacity=".8" fill="#4488ff" class="foreground-fill" />
 </svg>
