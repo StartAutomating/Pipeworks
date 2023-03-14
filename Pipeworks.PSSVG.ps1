@@ -72,7 +72,11 @@ SVG -viewbox 100, 100 @(
 
     # SVG.text -X 49%  -Y 33.3% -TextAnchor 'middle' -Content "PowerShell" @textSplat
 
-    SVG.text -X 48%  -Y 50% -TextAnchor 'middle' -Content "Pipeworks" @TextSplat
+    SVG.text -X 48%  -Y 50% -TextAnchor 'middle' -DominantBaseline 'middle' -Content @(
+        SVG.tspan -Content "P" -FontSize 1em 
+        SVG.tspan -Content "|" -FontSize .4em -Dx -.6em
+        SVG.tspan -Content "peworks" -FontSize 1em -Dx -.2em 
+    ) @TextSplat
     
     SVG.use -Href '#psChevron' -Height 9% @PathFill -Y 45.5% -X 25% -Opacity .8
 ) -OutputPath (Join-Path $PSScriptRoot Assets | Join-Path -ChildPath "Pipeworks.svg")
