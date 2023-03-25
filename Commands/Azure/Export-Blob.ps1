@@ -6,7 +6,8 @@
     .Description
         Exports data to a blob in Azure 
     .Example
-        Get-ChildItem -Filter *.ps1 | Export-Blob -Container scripts -StorageAccount astorageAccount -StorageKey (Get-SecureSetting aStorageKey -ValueOnly)
+        Get-ChildItem -Filter *.ps1 |
+            Export-Blob -Container scripts -StorageAccount astorageAccount -StorageKey (Get-Secret aStorageKey -AsPlainText)
     .Link
         Get-Blob
     .Link
@@ -38,10 +39,13 @@
     # The storage key
     [string]$StorageKey,
 
+    # A shared access signature.  If this is a partial URL, the storage account is still required.
+    [Alias('SAS')]
+    [string]$SharedAccessSignature,
+
     # If set, the container the blob is put into will be made public
     [Switch]
-    $Public
-    )
+    $Public)
 
 
     begin {
@@ -104,8 +108,7 @@ $signMessage = {
                 "$( & $GetCanonicalizedResource $Url $StorageAccount)",
                 $Md5OrContentType
                 ));
-        }
-        
+        }        
     }    
 
     $SignatureBytes = [Text.Encoding]::UTF8.GetBytes($MessageSignature)
@@ -239,6 +242,24 @@ $GetCanonicalizedResource = {
     }
 
     end {
+        #region Handled Shared Access Signatures
+        if (-not $SharedAccessSignature) {
+            $SharedAccessSignature = $script:CachedSharedAccessSignature
+        }
+        if ($SharedAccessSignature) {
+            $script:CachedSharedAccessSignature = $SharedAccessSignature
+            if ($SharedAccessSignature.StartsWith('https',[StringComparison]::OrdinalIgnoreCase)) {
+                $StorageAccount = ([uri]$SharedAccessSignature).Host.Split('.')[0]
+                $SharedAccessSignature = $SharedAccessSignature.Substring($SharedAccessSignature.IndexOf('?'))
+            }
+            
+            if (-not $SharedAccessSignature.StartsWith('?')) {
+                Write-Error "Shared access signature is an invalid format"
+                return
+            }
+        }
+        #endregion
+        
         #region check for and cache the storage account
         if (-not $StorageAccount) {
             $storageAccount = $script:CachedStorageAccount
@@ -248,12 +269,18 @@ $GetCanonicalizedResource = {
             $StorageKey = $script:CachedStorageKey
         }
 
+        $b64StorageKey = try { [Convert]::FromBase64String("$storageKey") } catch { }
+
+        if (-not $b64StorageKey -and $storageKey) {
+            $storageKey = Get-Secret -Name $storageKey -AsPlainText
+        }
+
         if (-not $StorageAccount) {
             Write-Error "No storage account provided"
             return
         }
 
-        if (-not $StorageKey) {
+        if (-not $StorageKey -and -not $SharedAccessSignature) {
             Write-Error "No storage key provided"
             return
         }
@@ -277,18 +304,22 @@ $GetCanonicalizedResource = {
             
             if (-not $knownContainers[$Container]) {
                 $method = 'GET'
-                $uri = "http://$StorageAccount.blob.core.windows.net/${Container}?restype=container&comp=list&include=metadata"
+                
+                $uri = "https://$StorageAccount.blob.core.windows.net/${Container}?restype=container&comp=list&include=metadata"
+                if ($SharedAccessSignature) {
+                    $uri += '&' + $SharedAccessSignature.TrimStart('?')
+                }
                 $header = @{
                     "x-ms-date" = $nowString 
                     "x-ms-version" = "2011-08-18"
                     "DataServiceVersion" = "2.0;NetFx"
                     "MaxDataServiceVersion" = "2.0;NetFx"
-
                 }
                 $header."x-ms-date" = [DateTime]::Now.ToUniversalTime().ToString("R", [Globalization.CultureInfo]::InvariantCulture)
                 $nowString = $header.'x-ms-date'
-                $header.authorization = . $signMessage -header $Header -url $Uri -nowstring $nowString -storageaccount $StorageAccount -storagekey $StorageKey -contentLength 0 -method GET
-        
+                if (-not $SharedAccessSignature) {
+                    $header.authorization = . $signMessage -header $Header -url $Uri -nowstring $nowString -storageaccount $StorageAccount -storagekey $StorageKey -contentLength 0 -method GET
+                }
             
                 $containerBlobList = Get-Web -UseWebRequest -Header $header -Url $Uri -Method GET -ErrorAction SilentlyContinue -ErrorVariable err -HideProgress
 
@@ -300,7 +331,7 @@ $GetCanonicalizedResource = {
             if (-not $containerBlobList) {
                 # Tries to create the container if it's not found
                 $method = 'PUT'
-                $uri = "http://$StorageAccount.blob.core.windows.net/${Container}?restype=container"
+                $uri = "https://$StorageAccount.blob.core.windows.net/${Container}?restype=container"
 
                 $header = @{
                     "x-ms-date" = $nowString 
@@ -332,25 +363,17 @@ $GetCanonicalizedResource = {
     <SignedIdentifier>
         <Id>Policy1</Id>
         <AccessPolicy>
-        <Start>2011-01-01T09:38:05Z</Start>
-        <Expiry>2011-12-31T09:38:05Z</Expiry>
+        <Start>$([DateTime]::UTCNow.ToString('s'))Z</Start>
+        <Expiry>$([DateTime]::UTCNow.AddYears(20).ToString('s'))Z</Expiry>
         <Permission>r</Permission>
     </AccessPolicy>
-   </SignedIdentifier>
-   <SignedIdentifier>
-     <Id>Policy2</Id>
-       <AccessPolicy>
-           <Start>2010-01-01T09:38:05Z</Start>
-           <Expiry>2012-12-31T09:38:05Z</Expiry>
-           <Permission>r</Permission>
-       </AccessPolicy>
-   </SignedIdentifier>
+   </SignedIdentifier>   
 </SignedIdentifiers>
 "@
         
                 $aclBytes= [Text.Encoding]::UTF8.GetBytes("$acl")    
                 $method = 'PUT'
-                $uri = "http://$StorageAccount.blob.core.windows.net/${Container}?restype=container&comp=acl"
+                $uri = "https://$StorageAccount.blob.core.windows.net/${Container}?restype=container&comp=acl"
                 $header = @{
                     "x-ms-date" = $nowString 
                     "x-ms-version" = "2011-08-18"
@@ -362,8 +385,13 @@ $GetCanonicalizedResource = {
                 $header."x-ms-date" = [DateTime]::Now.ToUniversalTime().ToString("R", [Globalization.CultureInfo]::InvariantCulture)
                 $nowString = $header.'x-ms-date'
                 $ct ='application/x-www-form-urlencoded'
-                $header.authorization = & $signMessage -header $Header -url $Uri -nowstring $nowString -storageaccount $StorageAccount -storagekey $StorageKey -contentLength $aclBytes.Length -method PUT  -md5OrContentType $ct 
-                $Created = Get-Web -UseWebRequest -Header $header -Url $Uri -Method PUT -RequestBody $aclBytes -ErrorAction SilentlyContinue 
+                if ($SharedAccessSignature) {
+                    $uri += '&' + $SharedAccessSignature.TrimStart('?')
+                } else {
+                    $header.authorization = 
+                        & $signMessage -header $Header -url $Uri -nowstring $nowString -storageaccount $StorageAccount -storagekey $StorageKey -contentLength $aclBytes.Length -method PUT -Md5OrContentType $ct
+                }
+                $Created = Get-Web -UseWebRequest -Header $header -Url $Uri -Method PUT -RequestBody $aclBytes -UseErrorAsResult
                 $null = $Created
                 $script:alreadyPublicContainers[$Container] = $Container
 
@@ -371,7 +399,7 @@ $GetCanonicalizedResource = {
             }
 
 
-            $uri = "http://$StorageAccount.blob.core.windows.net/$Container/$Name"
+            $uri = "https://$StorageAccount.blob.core.windows.net/$Container/$Name"
 
 
             # Turn our input into bytes
@@ -392,22 +420,136 @@ $GetCanonicalizedResource = {
                 $mimeType = $ContentType
             }
 
-            $method = 'PUT'
-            $header = @{
-                'x-ms-blob-type' = 'BlockBlob'
-                "x-ms-date" = $nowString 
-                "x-ms-version" = "2011-08-18"
-                "DataServiceVersion" = "2.0;NetFx"
-                "MaxDataServiceVersion" = "2.0;NetFx"
-                'content-type' = $mimeType 
+            if ($bytes.Length -ge 64mb) {
+                $BaseURI = $uri
+                $blockProgressId = Get-Random
+                $blockCount= [Math]::Ceiling($bytes.Length / 4mb)
+                
+                $blockNames = New-Object Collections.ArrayList
+                Write-Progress "Uploading Blocks" " " -Id $blockProgressId
+                $blockParts = for ($i =0; $i -lt $blockCount; $i++) {
+                    $p  = $i * 100 / $blockCount
+                    Write-Progress "Uploading Blocks" "[$i / $BlockCount]" -Id $blockProgressId -PercentComplete $p 
+                    $blockData = 
+                        if ($i -lt ($blockCount -1 )) {
+                            $bytes[($i * 4mb)..((($i + 1) * 4mb) - 1)]
+                        } else {
+                            $bytes[($i * 4mb)..$bytes.Length]
+                        }
+                    
+
+                    
+                    $blockName = [Convert]::ToBase64String([string]$i)
+                    $BlockUri = "${uri}?comp=block&blockid=$([Web.HttpUtility]::UrlEncode($blockName))" 
+
+                    New-Object PSObject -Property @{
+                        BlockName = $blockName
+                        BlockURI = $blockUri 
+                        BlockData= $bytes
+                    }
+                    $null = $blockNames.Add($blockName)
+
+                    
+                    $method = 'PUT'
+                    $header = @{
+                        'x-ms-blob-type' = 'BlockBlob'
+                        "x-ms-date" = $nowString 
+                        "x-ms-version" = "2011-08-18"
+                        "DataServiceVersion" = "2.0;NetFx"
+                        "MaxDataServiceVersion" = "2.0;NetFx"                        
+                    }
+                    $header."x-ms-date" = [DateTime]::Now.ToUniversalTime().ToString("R", [Globalization.CultureInfo]::InvariantCulture)
+                    $nowString = $header.'x-ms-date'
+                    if ($SharedAccessSignature) {
+                        $blockUri += '&' + $SharedAccessSignature.TrimStart('?')
+                    } else {
+                        $header.authorization = . $signMessage -header $Header -url $BlockUri -nowstring $nowString -storageaccount $StorageAccount -storagekey $StorageKey -contentLength $blockData.Length -method PUT -md5OrContentType "application/x-www-form-urlencoded" 
+                    }
+        
+                    $blobData= Get-Web -UseWebRequest -Header $header -Url $blockUri -Method PUT -RequestBody $blockData 
+                    
+                    $null = $blobData
+                }
+                <#
+                $blockParts | Invoke-Parallel -Variable @{
+                    "GetWeb" = $ExecutionContext.SessionState.InvokeCommand.GetCommand('Get-Web', 'Function')
+                    "SignMessage"  = $signMessage
+                    "GetCanonicalizedHeader" = $GetCanonicalizedHeader
+                    "GetCanonicalizedResource" = $GetCanonicalizedResource
+                    "GetHeaderValues" = $GetHeaderValues
+                } -Command {
+                    foreach ($block in $args) {
+                        $blockUri = $block.BlockUri
+                        $blockData = $block.blockData
+                        $blockName = $block.BlockName
+                        $method = 'PUT'
+                        $header = @{
+                            'x-ms-blob-type' = 'BlockBlob'                   
+                            "x-ms-version" = "2011-08-18"
+                            "DataServiceVersion" = "2.0;NetFx"
+                            "MaxDataServiceVersion" = "2.0;NetFx"                        
+                        }
+                        $header."x-ms-date" = [DateTime]::Now.ToUniversalTime().ToString("R", [Globalization.CultureInfo]::InvariantCulture)
+                        $nowString = $header.'x-ms-date'
+                        $header.authorization = . $signMessage -header $Header -url $BlockUri -nowstring $nowString -storageaccount $StorageAccount -storagekey $StorageKey -contentLength $blockData.Length -method PUT -md5OrContentType "application/x-www-form-urlencoded" 
+        
+        
+                        $blobData= & $getWeb -UseWebRequest -Header $header -Url $blockUri -Method PUT -RequestBody $blockData
+                    }
+                } #> 
+                Write-Progress "Uploading Blocks" "Committing Block List" -Id $blockProgressId -PercentComplete $p 
+                $putBlockList = @"
+<?xml version="1.0" encoding="utf-8"?>
+<BlockList>
+    $(foreach ($_ in $blockNames) { "<Latest>$_</Latest>"})
+</BlockList>
+"@
+                
+                $putBlockListBytes= [Text.Encoding]::UTF8.GetBytes("$putBlockList")    
+                $method = 'PUT'
+                $uri = "${baseUri}?comp=blocklist"
+                $header = @{
+                    "x-ms-date" = $nowString 
+                    "x-ms-version" = "2011-08-18"
+                    "x-ms-blob-public-access" = "container"
+                    "x-ms-blob-content-type" = $ContentType
+                    "DataServiceVersion" = "2.0;NetFx"
+                    "MaxDataServiceVersion" = "2.0;NetFx"
+                    'content-type' = $ct 
+                }
+                $header."x-ms-date" = [DateTime]::Now.ToUniversalTime().ToString("R", [Globalization.CultureInfo]::InvariantCulture)
+                $nowString = $header.'x-ms-date'
+                $ct ='text/plain'
+                if ($SharedAccessSignature) {
+                    $uri += '&' + $SharedAccessSignature.TrimStart('?')
+                } else {
+                    $header.authorization = & $signMessage -header $Header -url $Uri -nowstring $nowString -storageaccount $StorageAccount -storagekey $StorageKey -contentLength $putBlockListBytes.Length -method PUT -md5orcontentType $ct 
+                }
+                Write-Progress "Uploading Blocks" "Committing Block List" -Id $blockProgressId -Completed
+                $Created = Get-Web -UseWebRequest -Header $header -Url $Uri -Method PUT -RequestBody $putBlockListBytes -ContentType 'text/plain'
+                
+            } else {
+
+                $method = 'PUT'
+                $header = @{
+                    'x-ms-blob-type' = 'BlockBlob'
+                    "x-ms-date" = $nowString 
+                    "x-ms-version" = "2011-08-18"
+                    "DataServiceVersion" = "2.0;NetFx"
+                    "MaxDataServiceVersion" = "2.0;NetFx"
+                    'content-type' = $mimeType 
+                }
+                $header."x-ms-date" = [DateTime]::Now.ToUniversalTime().ToString("R", [Globalization.CultureInfo]::InvariantCulture)
+                $nowString = $header.'x-ms-date'
+                if ($SharedAccessSignature) {
+                    $uri += $SharedAccessSignature
+                } else {
+                    $header.authorization = . $signMessage -header $Header -url $Uri -nowstring $nowString -storageaccount $StorageAccount -storagekey $StorageKey -contentLength $bytes.Length -method PUT -md5OrContentType $mimeType
+                }
+        
+                $blobData= Get-Web -UseWebRequest -Header $header -Url $Uri -Method PUT -RequestBody $bytes -ContentType $mimeType 
+                $null = $blobData
             }
-            $header."x-ms-date" = [DateTime]::Now.ToUniversalTime().ToString("R", [Globalization.CultureInfo]::InvariantCulture)
-            $nowString = $header.'x-ms-date'
-            $header.authorization = . $signMessage -header $Header -url $Uri -nowstring $nowString -storageaccount $StorageAccount -storagekey $StorageKey -contentLength $bytes.Length -method PUT -md5OrContentType $mimeType
-        
-        
-            $blobData= Get-Web -UseWebRequest -Header $header -Url $Uri -Method PUT -RequestBody $bytes -ContentType $mimeType 
-            $null = $blobData
         }
     }
 }

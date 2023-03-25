@@ -29,7 +29,11 @@
     [string]$StorageAccount,
 
     # The storage key
-    [string]$StorageKey
+    [string]$StorageKey,
+    
+    # A shared access signature.  If this is a partial URL, the storage account is still required.
+    [Alias('SAS')]
+    [string]$SharedAccessSignature
     )
 
 
@@ -186,6 +190,24 @@ $GetCanonicalizedResource = {
 
 
     process {
+        #region Handled Shared Access Signatures
+        if (-not $SharedAccessSignature) {
+            $SharedAccessSignature = $script:CachedSharedAccessSignature
+        }
+        if ($SharedAccessSignature) {
+            $script:CachedSharedAccessSignature = $SharedAccessSignature
+            if ($SharedAccessSignature.StartsWith('https',[StringComparison]::OrdinalIgnoreCase)) {
+                $StorageAccount = ([uri]$SharedAccessSignature).Host.Split('.')[0]
+                $SharedAccessSignature = $SharedAccessSignature.Substring($SharedAccessSignature.IndexOf('?'))
+            }
+            
+            if (-not $SharedAccessSignature.StartsWith('?')) {
+                Write-Error "Shared access signature is an invalid format"
+                return
+            }
+        }
+        #endregion Handled Shared Access Signatures
+
         #region check for and cache the storage account
         if (-not $StorageAccount) {
             $storageAccount = $script:CachedStorageAccount
@@ -200,7 +222,13 @@ $GetCanonicalizedResource = {
             return
         }
 
-        if (-not $StorageKey) {
+        $b64StorageKey = try { [Convert]::FromBase64String("$storageKey") } catch { }
+
+        if (-not $b64StorageKey -and $storageKey) {
+            $storageKey = Get-Secret -Name $storageKey -AsPlainText
+        }
+
+        if (-not $StorageKey -and -not $SharedAccessSignature) {
             Write-Error "No storage key provided"
             return
         }
@@ -220,8 +248,11 @@ $GetCanonicalizedResource = {
         }
         $header."x-ms-date" = [DateTime]::Now.ToUniversalTime().ToString("R", [Globalization.CultureInfo]::InvariantCulture)
         $nowString = $header.'x-ms-date'
-        $header.authorization = & $signMessage -header $Header -url $Uri -nowstring $nowString -storageaccount $StorageAccount -storagekey $StorageKey -contentLength 0 -method GET
-        
+        if ($SharedAccessSignature) {
+            $uri += '&' + $SharedAccessSignature.TrimStart('?')
+        } else {
+            $header.authorization = & $signMessage -header $Header -url $Uri -nowstring $nowString -storageaccount $StorageAccount -storagekey $StorageKey -contentLength 0 -method GET
+        }
         
         $containerBlobList = Get-Web -UseWebRequest -Header $header -Url $Uri -Method GET -AsXml 
         # $err
@@ -245,8 +276,11 @@ $GetCanonicalizedResource = {
         }
         $header."x-ms-date" = [DateTime]::Now.ToUniversalTime().ToString("R", [Globalization.CultureInfo]::InvariantCulture)
         $nowString = $header.'x-ms-date'
-        $header.authorization = . $signMessage -header $Header -url $theBlob.Url -nowstring $nowString -storageaccount $StorageAccount -storagekey $StorageKey -method GET
-        
+        if ($SharedAccessSignature){
+            $uri += $SharedAccessSignature
+        } else {
+            $header.authorization = . $signMessage -header $Header -url $theBlob.Url -nowstring $nowString -storageaccount $StorageAccount -storagekey $StorageKey -method GET
+        }
 
 
         if ($theBlob.Properties.'Content-Type' -ne 'application/x-www-form-urlencoded' -and 
@@ -258,17 +292,6 @@ $GetCanonicalizedResource = {
             $blobData= Get-Web -UseWebRequest -Header $header -Url $theBlob.Url -Method GET -ErrorAction SilentlyContinue -ErrorVariable Err 
         }
         
-        
-
-
-
         $blobData
-
-
-
-
-
-
-
     }
 }
