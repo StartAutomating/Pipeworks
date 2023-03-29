@@ -131,7 +131,13 @@ function Update-Sql
     # If you ignore script properties (and the table includes the PSTypeName column), they will automatically be reconstructed in PowerShell.
     # This can reduce storage space, but will prevent non-PowerShell clients from seeing the properties 
     [Switch]
-    $IgnoreScriptProperty
+    $IgnoreScriptProperty,
+
+    # If set, will not attempt to create or set a PSTypeName column.
+    # The PSTypeName column is used to decorate data returned from Select-SQL, allowing it to act as PowerShell objects that can be formatted and extended.
+    [Alias('NoDecoration','NoDecorate')]
+    [switch]
+    $NoPSTypeName
     )
 
 
@@ -340,12 +346,12 @@ function Update-Sql
             }
 
 
-            if ($Force) {
+            if ($Force -and -not $NoPSTypeName) {
                 if ($haspstypename -or ($PropertyList -and $propertyList -notcontains 'pstypename') -or 
                     ($object.pstypenames[0] -like "*.PSCustomObject" -or 
                     $object.pstypenames[0] -like "*Selected.*")) {
                 } else {
-                    New-Object PSObject -Property @{
+                    [PSCustomObject]@{
                         Name="pstypename"
                         Value = $object.pstypenames -join '|'
                         SqlType = if ($UseSQLCompact) {
