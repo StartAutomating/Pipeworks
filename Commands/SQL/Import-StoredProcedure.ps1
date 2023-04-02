@@ -219,7 +219,9 @@ function Import-StoredProcedure
             if (-not $ThisCommandsVerb) { $ThisCommandsVerb = "Invoke" } 
             if (-not $ThisCommandsNoun) { $ThisCommandsNoun = $sprocName } 
             $thisCommandName = $ThisCommandsVerb+'-'+$ThisCommandsNoun
-            if ($Rename.Count -and $Rename[$thisCommandName] -or $rename[$sprocName]) {
+            if ($Rename.Count -and 
+                ($Rename[$thisCommandName] -or $rename[$sprocName])
+            ) {
                 $thisCommandName = 
                     if ($Rename[$thisCommandName]) {
                         $Rename[$thisCommandName]
